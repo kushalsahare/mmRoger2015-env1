@@ -37,11 +37,13 @@ ROGERLIB = lib/simulator.a
 OFILES1 = xrobot.o \
 	 platform.o \
          object.o \
-	 matrix_math.o
+	 matrix_math.o \
+	 geometry.o \
+#	 wall.o
 
 XKWOFILES = Xkw/Canvas.o Xkw/Slider.o Xkw/Xkw.o
 
-HFILES = roger.h simulate.h control.h modes.h matrix_math.h
+HFILES = roger.h simulate.h control.h modes.h matrix_math.h geometry.h wall.h
 
 all:  subdirs  $(OFILES1) $(ROGERLIB)
 

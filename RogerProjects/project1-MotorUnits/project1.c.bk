@@ -6,7 +6,7 @@
 /*              millisecond and are never disengaged. Higher-level       */
 /*              control applications submit sequences of setpoints to    */
 /*              combinations of motorunits.                              */
-/* Date:        12-2014                                                  */
+/* Date:        1-2015                                                   */
 /*************************************************************************/
 #include <math.h>
 #include <stdio.h>
@@ -21,23 +21,23 @@ void update_setpoints();
 /*************************************************************************/
 /* PROJECT #1 - COMPLETE THE FOLLOWING CONTROL PROCEDURES                */
 // gains for the PD controllers EYES
-double Kp_eye = 1.0;
-double Kd_eye = 0.0178885; //= sqrt(4.0*Kp_eye*I_EYE)
+double Kp_eye = 0.0;
+double Kd_eye = 0.0;
 double passive_Kd_eye = 0.001;
 
 // ARMS 
-double Kp_arm = 100.0;
-double Kd_arm =  10.0;
+double Kp_arm =  0.0;
+double Kd_arm =  0.0;
 double passive_Kd_arm = 1.0;
 
 // BASE TRANSLATION
-double Kp_base_trans = 100.0;
-double Kd_base_trans = 25.0; 
+double Kp_base_trans = 0.0;
+double Kd_base_trans = 0.0; 
 double passive_Kd_base_trans = 2.0;
 
 // BASE ROTATION
-double Kp_base_rot = 200.0;
-double Kd_base_rot =  10.0;
+double Kp_base_rot =  0.0;
+double Kd_base_rot =  0.0;
 double passive_Kd_base_rot = 1.0;
 /*************************************************************************/
 
@@ -54,7 +54,9 @@ double time;
     theta_error = roger->eyes_setpoint[i] - roger->eye_theta[i];
     theta_dot_error = 0.0 - roger->eye_theta_dot[i];
     if (ACTUATE_EYES) {
-      roger->eye_torque[i] = Kp_eye*theta_error + Kd_eye*theta_dot_error;
+      // REPLACE THE FOLLOWING LINE WITH THE PD CONTROLLER FOR THE EYE
+      // USING YOUR GAINS
+      roger->eye_torque[i] = passive_Kd_eye*theta_dot_error;
     } 
     else roger->eye_torque[i] = passive_Kd_eye*theta_dot_error;
   }
@@ -80,7 +82,10 @@ double time;
 
       // tune kp_arm and kd_arm by changing their value using enter_params()
       if (ACTUATE_ARMS) {
-	roger->arm_torque[i][j] = Kp_arm*theta_error + Kd_arm*theta_dot_error;
+      // REPLACE THE FOLLOWING LINE WITH THE PD CONTROLLER FOR THE ARM
+      // USING YOUR GAINS
+	roger->arm_torque[i][j] = passive_Kd_arm * theta_dot_error;
+
       }
       else {
 	roger->arm_torque[i][j] = passive_Kd_arm * theta_dot_error;
@@ -106,7 +111,9 @@ double time;
     roger->base_velocity[Y]*sin(roger->base_position[THETA]);
 
   if (ACTUATE_BASE) {
-    Fx = Kp_base_trans * trans_error - Kd_base_trans * trans_vel;
+    // REPLACE THE FOLLOWING LINE WITH THE PD CONTROLLER FOR THE BASE
+    // USING YOUR GAINS
+    Fx = - passive_Kd_base_trans * trans_vel;
   }
   else {
     Fx = - passive_Kd_base_trans * trans_vel;
@@ -127,7 +134,9 @@ double time;
   while (theta_error < -M_PI) theta_error += 2.0 * M_PI;
 
   if (ACTUATE_BASE) {
-    Mz = Kp_base_rot * theta_error + Kd_base_rot * theta_dot_error;
+    // REPLACE THE FOLLOWING LINE WITH THE PD CONTROLLER FOR THE BASE
+    // USING YOUR GAINS
+    Mz = passive_Kd_base_rot * theta_dot_error;
   }
   else {
     Mz = passive_Kd_base_rot * theta_dot_error;
@@ -175,7 +184,7 @@ void control_roger(roger, time)
 Robot * roger;
 double time;
 {
-  update_setpoints(roger); // check_GUI_inputs(roger) - 
+  update_setpoints(roger); // check_GUI_inputs(roger)
 
   // turn setpoint references into torques
   PDController_eyes(roger, time);

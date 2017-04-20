@@ -4,6 +4,10 @@
 /* Author:      Rod Grupen                                                */
 /* Date:        4-1-2013                                                  */
 /**************************************************************************/
+
+#ifndef CONTROL_H_
+#define CONTROL_H_
+
 #define ACTUATE_BASE  1 // 1 => ACTUATED,  0 => UNACTUATED
 #define ACTUATE_EYES  1 // 1 => ACTUATED,  0 => UNACTUATED
 #define ACTUATE_ARMS  1 // 1 => ACTUATED,  0 => UNACTUATED
@@ -148,3 +152,4 @@ typedef struct _pr_dist {
   double dist[NBINS];
 } Pr_dist;
 
+#endif //CONTROL_H_

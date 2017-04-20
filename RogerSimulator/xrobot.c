@@ -4,17 +4,19 @@
 /** author:   Grupen                                           **/
 /** date:     April, 2010                                      **/
 /****************************************************************/
-#include <stdio.h>
+
+#include <stdio.h>/*{{{*/
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include "Xkw/Xkw.h"
 
-#include "include/roger.h"
+#include "include/Roger.h"
 #include "include/simulate.h"
 #include "include/control.h"
 #include "include/modes.h"
 #include "include/matrix_math.h"
+/*}}}*/
 
 // simulator data structures that comprise Roger
 Base mobile_base;
@@ -46,41 +48,47 @@ int reset;
 
 // global simulator clock
 double simtime = 0.0;
+//function declarations
 
-void x_canvas_proc(), x_start_proc(), x_params_proc(), x_input_mode_proc();
+void x_canvas_proc(), x_start_proc(), x_params_proc(), x_input_mode_proc();/*{{{*/
 void x_control_mode_proc(), x_quit_proc(), x_timer_proc(), x_visualize_proc();
 void x_room_proc();
 
 void project1_enter_params(), project1_reset(),
-  project1_visualize(), project1_control();
+     project1_visualize(), project1_control();
 void project2_enter_params(), project2_reset(), 
-  project2_visualize(), project2_control();
+     project2_visualize(), project2_control();
 void project3_enter_params(), project3_reset(), 
-  project3_visualize(), project3_control();
+     project3_visualize(), project3_control();
 void project4_enter_params(), project4_reset(), 
-  project4_visualize(), project4_control();
+     project4_visualize(), project4_control();
 void project5_enter_params(), project5_reset(),
-  project5_visualize(), project5_control();
+     project5_visualize(), project5_control();
 void project6_enter_params(), project6_reset(), 
-  project6_visualize(), project6_control();
+     project6_visualize(), project6_control();
 void project7_enter_params(), project7_reset(), 
-  project7_visualize(), project7_control();
+     project7_visualize(), project7_control();
 void project8_enter_params(), project8_reset(), 
-  project8_visualize(), project8_control();
+     project8_visualize(), project8_control();
 void project9_enter_params(), project9_reset(), 
-  project9_visualize(), project9_control();
+     project9_visualize(), project9_control();
 void project10_enter_params(), project10_reset(), 
-  project10_visualize(), project10_control();
+     project10_visualize(), project10_control();
 void project11_enter_params(), project11_reset(), 
-  project11_visualize(), project11_control();
+     project11_visualize(), project11_control();
+void project12_enter_params(), project12_reset(), 
+     project12_visualize(), project12_control();
+
+
 
 void HT_invert(), construct_wTb();
 
 void control_roger(), simulate_roger(), simulate_object();
 //void simulate_base(), simulate_arm(), simulate_eyes(), simulate_object(), 
 void inv_arm_kinematics();
+/*}}}*/
 
-Display          *display;
+Display          *display;/*{{{*/
 Window           window;
 Pixmap           pixmap;
 XtAppContext     app_con;
@@ -93,8 +101,9 @@ int              width = WIDTH, height = HEIGHT, depth;
 unsigned long    foreground, background;
 
 int zoom = ZOOM_SCALE; 
+/*}}}*/
 
-void x_init_colors() 
+void x_init_colors() /*{{{*/
 {
   int i;
 
@@ -178,9 +187,10 @@ void x_init_colors()
   world_colors[112].green = 192;
   world_colors[112].blue = 192;
 }
+/*}}}*/
 
-void write_interface(reset)
-int reset;
+void write_interface(reset)/*{{{*/
+  int reset;
 {
   int i,j;
 
@@ -230,24 +240,25 @@ int reset;
     = Roger.arm_torque[1][1] = 0.0;
   Roger.wheel_torque[0] = Roger.wheel_torque[1] = 0.0;
 }  
+/*}}}*/
 
-void read_interface()
+void read_interface()/*{{{*/
 {
   double motor_model();
 
   // pass back torques (write only)
   arms[0][1].torque = 
     motor_model(Roger.arm_torque[0][0], Roger.arm_theta_dot[0][0],
-		SHOULDER_TS, SHOULDER_W0);
+        SHOULDER_TS, SHOULDER_W0);
   arms[1][1].torque = 
     motor_model(Roger.arm_torque[1][0], Roger.arm_theta_dot[1][0],
-		SHOULDER_TS, SHOULDER_W0);
+        SHOULDER_TS, SHOULDER_W0);
   arms[0][2].torque = 
     motor_model(Roger.arm_torque[0][1], Roger.arm_theta_dot[0][1],
-		ELBOW_TS, ELBOW_W0);
+        ELBOW_TS, ELBOW_W0);
   arms[1][2].torque = 
     motor_model(Roger.arm_torque[1][1], Roger.arm_theta_dot[1][1],
-		ELBOW_TS, ELBOW_W0);
+        ELBOW_TS, ELBOW_W0);
 
   eyes[0].torque = 
     motor_model(Roger.eye_torque[0], Roger.eye_theta_dot[0], EYE_TS, EYE_W0);
@@ -256,14 +267,15 @@ void read_interface()
 
   mobile_base.wheel_torque[0] = 
     motor_model(Roger.wheel_torque[0], Roger.wheel_theta_dot[0],
-		WHEEL_TS, WHEEL_W0);
+        WHEEL_TS, WHEEL_W0);
   mobile_base.wheel_torque[1] = 
     motor_model(Roger.wheel_torque[1], Roger.wheel_theta_dot[1],
-		WHEEL_TS, WHEEL_W0);
+        WHEEL_TS, WHEEL_W0);
 }
+/*}}}*/
 
-double motor_model(tau, omega, tau_s, omega_0)
-double tau, omega, tau_s, omega_0;
+double motor_model(tau, omega, tau_s, omega_0)/*{{{*/
+  double tau, omega, tau_s, omega_0;
 {
   int i;
   double tau_max, tau_min;
@@ -281,18 +293,19 @@ double tau, omega, tau_s, omega_0;
 
   return(tau);
 }
+/*}}}*/
 
-void initialize_simulator(rst) 
-int rst;
+void initialize_simulator(rst) /*{{{*/
+  int rst;
 {
   void initialize_roger(), initialize_inertial_objects();
 
   if (rst) {
     initialize_roger(); // assign "home" values into configuration variables 
     initialize_inertial_objects(); // all params and data structures needed
-                                   // to compute collision forces between 
-                                   // base, hands, object (circle||"triangle")
-                                   // and OBSTACLEs in the occupancy grid.
+    // to compute collision forces between 
+    // base, hands, object (circle||"triangle")
+    // and OBSTACLEs in the occupancy grid.
     // reset room geometry as well? to get rid of user inputs and
     // become Room 0 again?
 
@@ -300,8 +313,9 @@ int rst;
     write_interface(rst);
   }
 }
+/*}}}*/
 
-void initialize_roger()
+void initialize_roger()/*{{{*/
 {
   int i,j,k,l;
 
@@ -325,7 +339,7 @@ void initialize_roger()
   for (i=0;i<2;++i) {
     mobile_base.extForce[i] = mobile_base_home.extForce[i];
   }
-  
+
   /************************************************************************/
   // LEFT AND RIGHT EYE
   for (i = LEFT; i <= RIGHT; ++i) {
@@ -344,9 +358,9 @@ void initialize_roger()
   for (i=0;i<NARMS;++i) {
     for (j=0;j<NARM_FRAMES;++j) {
       for (k=0;k<4;++k) {
-	for (l=0;l<4;++l) {
-	  arms[i][j].iTj[k][l] = arms_home[i][j].iTj[k][l];
-	}
+        for (l=0;l<4;++l) {
+          arms[i][j].iTj[k][l] = arms_home[i][j].iTj[k][l];
+        }
       }
       arms[i][j].dof_type = arms_home[i][j].dof_type;
       arms[i][j].axis = arms_home[i][j].axis;
@@ -358,9 +372,9 @@ void initialize_roger()
     }
   }
 }
-
+/*}}}*/
 // define geometrical and inertial parameters for the NBODY dynamical system
-void initialize_inertial_objects()
+void initialize_inertial_objects()/*{{{*/
 {
   double pb[4], pw[4]; // homogeneous position vectors in base and world coords
   double vb[4], vw[4]; // homogeneous velocity vectors in base and world coords
@@ -385,129 +399,129 @@ void initialize_inertial_objects()
   //  } PolyBall;
 
   /****************************** 0: BASE ************************************/
-     objects[BASE].N = 1;
-     objects[BASE].Rsphere = R_BASE;
-     objects[BASE].radius = 0.0;
-     objects[BASE].mass = M_BASE;
-     objects[BASE].moi = I_BASE;
+  objects[BASE].N = 1;
+  objects[BASE].Rsphere = R_BASE;
+  objects[BASE].radius = 0.0;
+  objects[BASE].mass = M_BASE;
+  objects[BASE].moi = I_BASE;
 
-     objects[BASE].position[X] = mobile_base.x; 
-     objects[BASE].position[Y] = mobile_base.y; 
-     objects[BASE].position[THETA] = mobile_base.theta;
+  objects[BASE].position[X] = mobile_base.x; 
+  objects[BASE].position[Y] = mobile_base.y; 
+  objects[BASE].position[THETA] = mobile_base.theta;
 
-     objects[BASE].velocity[X] = mobile_base.x_dot;
-     objects[BASE].velocity[Y] = mobile_base.y_dot; 
-     objects[BASE].velocity[THETA] = mobile_base.theta_dot;
+  objects[BASE].velocity[X] = mobile_base.x_dot;
+  objects[BASE].velocity[Y] = mobile_base.y_dot; 
+  objects[BASE].velocity[THETA] = mobile_base.theta_dot;
 
-     objects[BASE].net_extForce[X] = objects[BASE].net_extForce[Y] =
-       objects[BASE].net_extForce[THETA] = 0.0;
+  objects[BASE].net_extForce[X] = objects[BASE].net_extForce[Y] =
+    objects[BASE].net_extForce[THETA] = 0.0;
 
   /************************** 1: LEFT ARM ************************************/
   // left hand position in world coordinates
-     SIMfwd_kinematics(LEFT, arms[LEFT][1].theta, arms[LEFT][2].theta, &x, &y);
-     pb[0] = x; pb[1] = y; pb[2] = 0.0; pb[3] = 1.0;
-     matrix_mult(4, 4, mobile_base.wTb, 1, pb, pw);
+  SIMfwd_kinematics(LEFT, arms[LEFT][1].theta, arms[LEFT][2].theta, &x, &y);
+  pb[0] = x; pb[1] = y; pb[2] = 0.0; pb[3] = 1.0;
+  matrix_mult(4, 4, mobile_base.wTb, 1, pb, pw);
 
   // left hand velocity relative to base written in base coordinates
   //          (figure 2 in RogerDynamics document defines frames)
   // ^w(v)_10 = wRb[ ^b(v)_7 +  J_arm theta_dot_arm ]
   //    = ^w(v)_b + wRb[ -ARM_OFFSET omega_0 xhat_b + J_arm theta_dot_arm ]
-     SIMarm_Jacobian(arms[LEFT][1].theta, arms[LEFT][2].theta, J);
-     vb[X] = J[0][0]*arms[LEFT][1].theta_dot + 
-       J[0][1]*arms[LEFT][2].theta_dot - ARM_OFFSET*mobile_base.theta_dot;
-     vb[Y] = J[1][0]*arms[LEFT][1].theta_dot + J[1][1]*arms[LEFT][2].theta_dot;
-     vb[2] = 0.0;
-     vb[3] = 0.0; // homogeneous vector
+  SIMarm_Jacobian(arms[LEFT][1].theta, arms[LEFT][2].theta, J);
+  vb[X] = J[0][0]*arms[LEFT][1].theta_dot + 
+    J[0][1]*arms[LEFT][2].theta_dot - ARM_OFFSET*mobile_base.theta_dot;
+  vb[Y] = J[1][0]*arms[LEFT][1].theta_dot + J[1][1]*arms[LEFT][2].theta_dot;
+  vb[2] = 0.0;
+  vb[3] = 0.0; // homogeneous vector
 
-     matrix_mult(4, 4, mobile_base.wTb, 1, vb, vw);
+  matrix_mult(4, 4, mobile_base.wTb, 1, vb, vw);
   //  v[1][X] = base->x_dot + v_w[X];
   //  v[1][Y] = base->y_dot + v_w[Y];
   //  R[1] = R_TACTILE;
 
-     objects[ARM1].N = 1;
-     objects[ARM1].Rsphere = R_TACTILE;
-     objects[ARM1].radius = 0.0;
-     objects[ARM1].mass = M_ARM1;
-     objects[ARM1].moi = I_ARM1;
-     
-     objects[ARM1].position[X] = pw[X];
-     objects[ARM1].position[Y] = pw[Y];
-     objects[ARM1].position[THETA] = 0.0;
-     // hand orientation is not relevant to system dynamics
+  objects[ARM1].N = 1;
+  objects[ARM1].Rsphere = R_TACTILE;
+  objects[ARM1].radius = 0.0;
+  objects[ARM1].mass = M_ARM1;
+  objects[ARM1].moi = I_ARM1;
 
-     objects[ARM1].velocity[X] = mobile_base.x_dot + vw[X];
-     objects[ARM1].velocity[Y] = mobile_base.y_dot + vw[Y]; 
-     objects[ARM1].velocity[THETA] = 0.0; 
-     // angular acceleration in the hand is not relevant to system dynamics
+  objects[ARM1].position[X] = pw[X];
+  objects[ARM1].position[Y] = pw[Y];
+  objects[ARM1].position[THETA] = 0.0;
+  // hand orientation is not relevant to system dynamics
 
-     objects[ARM1].net_extForce[X] = objects[ARM1].net_extForce[Y] =
-       objects[ARM1].net_extForce[THETA] = 0.0;
+  objects[ARM1].velocity[X] = mobile_base.x_dot + vw[X];
+  objects[ARM1].velocity[Y] = mobile_base.y_dot + vw[Y]; 
+  objects[ARM1].velocity[THETA] = 0.0; 
+  // angular acceleration in the hand is not relevant to system dynamics
+
+  objects[ARM1].net_extForce[X] = objects[ARM1].net_extForce[Y] =
+    objects[ARM1].net_extForce[THETA] = 0.0;
 
   /************************** 2: RIGHT ARM ************************************/
   // right hand position in world coordinates
-     SIMfwd_kinematics(RIGHT,arms[RIGHT][1].theta,arms[RIGHT][2].theta, &x,&y);
-     pb[0] = x; pb[1] = y; pb[2] = 0.0; pb[3] = 1.0;
-     matrix_mult(4, 4, mobile_base.wTb, 1, pb, pw);
+  SIMfwd_kinematics(RIGHT,arms[RIGHT][1].theta,arms[RIGHT][2].theta, &x,&y);
+  pb[0] = x; pb[1] = y; pb[2] = 0.0; pb[3] = 1.0;
+  matrix_mult(4, 4, mobile_base.wTb, 1, pb, pw);
 
   // left hand velocity relative to base written in base coordinates
   //          (figure 2 in RogerDynamics document defines frames)
   // ^w(v)_10 = wRb[ ^b(v)_7 +  J_arm theta_dot_arm ]
   //    = ^w(v)_b + wRb[ -ARM_OFFSET omega_0 xhat_b + J_arm theta_dot_arm ]
-     SIMarm_Jacobian(arms[RIGHT][1].theta, arms[RIGHT][2].theta, J);
-     vb[X] = J[0][0]*arms[RIGHT][1].theta_dot + 
-       J[0][1]*arms[RIGHT][2].theta_dot - ARM_OFFSET*mobile_base.theta_dot;
-     vb[Y] = J[1][0]*arms[RIGHT][1].theta_dot+J[1][1]*arms[RIGHT][2].theta_dot;
-     vb[2] = 0.0;
-     vb[3] = 0.0; // homogeneous vector
+  SIMarm_Jacobian(arms[RIGHT][1].theta, arms[RIGHT][2].theta, J);
+  vb[X] = J[0][0]*arms[RIGHT][1].theta_dot + 
+    J[0][1]*arms[RIGHT][2].theta_dot - ARM_OFFSET*mobile_base.theta_dot;
+  vb[Y] = J[1][0]*arms[RIGHT][1].theta_dot+J[1][1]*arms[RIGHT][2].theta_dot;
+  vb[2] = 0.0;
+  vb[3] = 0.0; // homogeneous vector
 
-     matrix_mult(4, 4, mobile_base.wTb, 1, vb, vw);
+  matrix_mult(4, 4, mobile_base.wTb, 1, vb, vw);
 
-     objects[ARM2].N = 1;
-     objects[ARM2].Rsphere = R_TACTILE;
-     objects[ARM2].radius = 0.0;
-     objects[ARM2].mass = M_ARM1;
-     objects[ARM2].moi = I_ARM1;
+  objects[ARM2].N = 1;
+  objects[ARM2].Rsphere = R_TACTILE;
+  objects[ARM2].radius = 0.0;
+  objects[ARM2].mass = M_ARM1;
+  objects[ARM2].moi = I_ARM1;
 
-     objects[ARM2].position[X] = pw[X];
-     objects[ARM2].position[Y] = pw[Y];
-     objects[ARM2].position[THETA] = 0.0; 
-     // hand orientation not relevant to system dynamics
+  objects[ARM2].position[X] = pw[X];
+  objects[ARM2].position[Y] = pw[Y];
+  objects[ARM2].position[THETA] = 0.0; 
+  // hand orientation not relevant to system dynamics
 
-     objects[ARM2].velocity[X] = mobile_base.x_dot + vw[X];
-     objects[ARM2].velocity[Y] = mobile_base.y_dot + vw[Y]; 
-     objects[ARM2].velocity[THETA] = 0.0;
-     // angular acceleration of hand is not relevant to system dynamics
+  objects[ARM2].velocity[X] = mobile_base.x_dot + vw[X];
+  objects[ARM2].velocity[Y] = mobile_base.y_dot + vw[Y]; 
+  objects[ARM2].velocity[THETA] = 0.0;
+  // angular acceleration of hand is not relevant to system dynamics
 
-     objects[ARM2].net_extForce[X] = objects[ARM2].net_extForce[Y] =
-       objects[ARM2].net_extForce[THETA] = 0.0;
+  objects[ARM2].net_extForce[X] = objects[ARM2].net_extForce[Y] =
+    objects[ARM2].net_extForce[THETA] = 0.0;
 
   /****************** 3: TOY OBJECT - CIRCLE || TRIANGLE *********************/
-     objects[TOY].id = toy.id = toy_home.id;
-     objects[TOY].N = toy.N = toy_home.N;
-     objects[TOY].Rsphere = toy.Rsphere = toy_home.Rsphere;
-     objects[TOY].radius = toy.radius = toy_home.radius;
-     objects[TOY].mass = toy.mass = toy_home.mass;
-     objects[TOY].moi = toy.moi = toy_home.moi;
+  objects[TOY].id = toy.id = toy_home.id;
+  objects[TOY].N = toy.N = toy_home.N;
+  objects[TOY].Rsphere = toy.Rsphere = toy_home.Rsphere;
+  objects[TOY].radius = toy.radius = toy_home.radius;
+  objects[TOY].mass = toy.mass = toy_home.mass;
+  objects[TOY].moi = toy.moi = toy_home.moi;
 
-     objects[TOY].position[X] = toy.position[X] = toy_home.position[X]; 
-     objects[TOY].position[Y] = toy.position[Y] = toy_home.position[Y];
-     objects[TOY].position[THETA]=toy.position[THETA]=toy_home.position[THETA];
+  objects[TOY].position[X] = toy.position[X] = toy_home.position[X]; 
+  objects[TOY].position[Y] = toy.position[Y] = toy_home.position[Y];
+  objects[TOY].position[THETA]=toy.position[THETA]=toy_home.position[THETA];
 
-     objects[TOY].velocity[X] = toy.velocity[X] = toy_home.velocity[X];
-     objects[TOY].velocity[Y] = toy.velocity[Y] = toy_home.velocity[Y];
-     objects[TOY].velocity[THETA]=toy.velocity[THETA]=toy_home.velocity[THETA];
+  objects[TOY].velocity[X] = toy.velocity[X] = toy_home.velocity[X];
+  objects[TOY].velocity[Y] = toy.velocity[Y] = toy_home.velocity[Y];
+  objects[TOY].velocity[THETA]=toy.velocity[THETA]=toy_home.velocity[THETA];
 
-     objects[TOY].net_extForce[X] = objects[TOY].net_extForce[Y] =
-       objects[TOY].net_extForce[THETA] = 0.0;
+  objects[TOY].net_extForce[X] = objects[TOY].net_extForce[Y] =
+    objects[TOY].net_extForce[THETA] = 0.0;
 }
-
+/*}}}*/
 // #ifndef MAX_RAND
 // #define MAX_RAND   2147483647.0
 // #endif
 
 #define R_GOAL 0.45
 
-void initialize_random_object()
+void initialize_random_object()/*{{{*/
 {
   // ORIGINAL (SINGLE) OBJECT
   toy.id = CIRCLE;
@@ -530,10 +544,11 @@ void initialize_random_object()
   toy.velocity[X] = toy.velocity[Y] = toy.velocity[THETA] = 0.0;
   toy.net_extForce[X] = toy.net_extForce[Y] = toy.net_extForce[THETA] = 0.0;
 }
+/*}}}*/
 
-void place_object(x,y,id)
-double x,y;
-int id;
+void place_object(x,y,id)/*{{{*/
+  double x,y;
+  int id;
 {
   if (id==CIRCLE) {
     toy.id = id;
@@ -562,10 +577,11 @@ int id;
     toy.net_extForce[X] = toy.net_extForce[Y] = toy.net_extForce[THETA] = 0.0;
   }
 }    
+/*}}}*/
 
-void x_start_proc(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+void x_start_proc(w, client_data, call_data)/*{{{*/
+  Widget w;
+  XtPointer client_data, call_data;
 {
   if (!timer) {
     XkwSetWidgetLabel(start_w, "Stop");
@@ -578,62 +594,66 @@ XtPointer client_data, call_data;
     timer = 0;
   }
 }
+/*}}}*/
 
-void x_params_proc(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+void x_params_proc(w, client_data, call_data)/*{{{*/
+  Widget w;
+  XtPointer client_data, call_data;
 {
   switch (Roger.control_mode) {
-     case PROJECT2: project2_enter_params(); break;
-     case PROJECT3: project3_enter_params(); break;
-     case PROJECT4: project4_enter_params(); break;
-     case PROJECT5: project5_enter_params(); break;
-     case PROJECT6: project6_enter_params(); break;
-     case PROJECT7: project7_enter_params(); break;
-     case PROJECT8: project8_enter_params(); break;
-     case PROJECT9: project9_enter_params(); break;
-     case PROJECT10: project10_enter_params(); break;
-     case PROJECT11: project11_enter_params(); break;
-     default:
-       project1_enter_params();
+    case PROJECT2: project2_enter_params(); break;
+    case PROJECT3: project3_enter_params(); break;
+    case PROJECT4: project4_enter_params(); break;
+    case PROJECT5: project5_enter_params(); break;
+    case PROJECT6: project6_enter_params(); break;
+    case PROJECT7: project7_enter_params(); break;
+    case PROJECT8: project8_enter_params(); break;
+    case PROJECT9: project9_enter_params(); break;
+    case PROJECT10: project10_enter_params(); break;
+    case PROJECT11: project11_enter_params(); break;
+    case PROJECT12: project12_enter_params(); break;
+    default:
+                    project1_enter_params();
   }
 }
+/*}}}*/
 
-int change_input_mode()
+int change_input_mode()/*{{{*/
 {
-   static int input_mode;
+  static int input_mode;
 
-   input_mode = (input_mode + 1) % N_INPUT_MODES;
-   //init_input_flag = TRUE;
-   return (input_mode);
+  input_mode = (input_mode + 1) % N_INPUT_MODES;
+  //init_input_flag = TRUE;
+  return (input_mode);
 }
+/*}}}*/
 
-void x_input_mode_proc(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+void x_input_mode_proc(w, client_data, call_data)/*{{{*/
+  Widget w;
+  XtPointer client_data, call_data;
 {
   Roger.input_mode = change_input_mode();
 
   switch (Roger.input_mode) {
-     case JOINT_ANGLE_INPUT:
-       XkwSetWidgetLabel(input_mode_w, "Input: Joint angles"); break;
-     case BASE_GOAL_INPUT:
-       XkwSetWidgetLabel(input_mode_w, "Input: Base goal"); break;
-     case ARM_GOAL_INPUT:
-       XkwSetWidgetLabel(input_mode_w, "Input: Arm goals"); break;
-     case TOY_INPUT:
-       XkwSetWidgetLabel(input_mode_w, "Input: Ball position"); break;
-     case MAP_INPUT:
-       XkwSetWidgetLabel(input_mode_w, "Input: Map Editor"); break;
-     default: break;
+    case JOINT_ANGLE_INPUT:
+      XkwSetWidgetLabel(input_mode_w, "Input: Joint angles"); break;
+    case BASE_GOAL_INPUT:
+      XkwSetWidgetLabel(input_mode_w, "Input: Base goal"); break;
+    case ARM_GOAL_INPUT:
+      XkwSetWidgetLabel(input_mode_w, "Input: Arm goals"); break;
+    case TOY_INPUT:
+      XkwSetWidgetLabel(input_mode_w, "Input: Ball position"); break;
+    case MAP_INPUT:
+      XkwSetWidgetLabel(input_mode_w, "Input: Map Editor"); break;
+    default: break;
   }
 }
-
+/*}}}*/
 // initialize all setpoints to reflect the current posture, set the Cartesian
 //    button_reference as appropriate for the new mode (base, left arm,
 //       right arm, stereo head, harmonic function, integrated app)
-void initialize_control_mode(roger)
-Robot * roger;
+void initialize_control_mode(roger)/*{{{*/
+  Robot * roger;
 {
   double wTb[4][4],ref_w[4],ref_b[4];
   int i,j;
@@ -654,40 +674,43 @@ Robot * roger;
   // call the reset method of the last mode --> clear everything you modified
   switch ((roger->control_mode + N_CONTROL_MODES - 1) % N_CONTROL_MODES) {
     // "+ N_CONTROL_MODES" needed as modulo of negative numbers incorrect
-     case PROJECT3:
-       project3_reset(roger);
-       break;
-     case PROJECT4:
-       project4_reset(roger);
-       break;
-     case PROJECT5:
-       project5_reset(roger);
-       break;
-     case PROJECT6:
-       project6_reset(roger);
-       break;
-     case PROJECT7:
-       project7_reset(roger);
-       break;
-     case PROJECT8:
-       project8_reset(roger);
-       break;
-     case PROJECT9:
-       project9_reset(roger);
-       break;
-     case PROJECT10:
-       project10_reset(roger);
-       break;
-     case PROJECT11:
-       project11_reset(roger);
-       break;
-     default:
-       break;
+    case PROJECT3:
+      project3_reset(roger);
+      break;
+    case PROJECT4:
+      project4_reset(roger);
+      break;
+    case PROJECT5:
+      project5_reset(roger);
+      break;
+    case PROJECT6:
+      project6_reset(roger);
+      break;
+    case PROJECT7:
+      project7_reset(roger);
+      break;
+    case PROJECT8:
+      project8_reset(roger);
+      break;
+    case PROJECT9:
+      project9_reset(roger);
+      break;
+    case PROJECT10:
+      project10_reset(roger);
+      break;
+    case PROJECT11:
+      project11_reset(roger);
+      break;
+    case PROJECT12:
+      project12_reset(roger);
+    default:
+      break;
   }
   init_control_flag = FALSE;
 }
+/*}}}*/
 
-int change_control_mode()
+int change_control_mode()/*{{{*/
 {
   static int control_mode;
 
@@ -696,44 +719,48 @@ int change_control_mode()
   init_control_flag = TRUE;
   return (control_mode);
 }
+/*}}}*/
 
-void x_control_mode_proc(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+void x_control_mode_proc(w, client_data, call_data)/*{{{*/
+  Widget w;
+  XtPointer client_data, call_data;
 {
   Roger.control_mode = change_control_mode();
 
   switch (Roger.control_mode) {
-     case PROJECT1:
-       XkwSetWidgetLabel(control_mode_w, "1-MotorUnits"); break;
-     case PROJECT2:
-       XkwSetWidgetLabel(control_mode_w, "2-ArmKinematics"); break;
-     case PROJECT3:
-       XkwSetWidgetLabel(control_mode_w, "3-Vision"); break;
-     case PROJECT4:
-       XkwSetWidgetLabel(control_mode_w, "4-SearchTrack"); break;
-     case PROJECT5:
-       XkwSetWidgetLabel(control_mode_w, "5-StereoKinematics"); break;
-     case PROJECT6:
-       XkwSetWidgetLabel(control_mode_w, "6-Kalman"); break;
-     case PROJECT7:
-       XkwSetWidgetLabel(control_mode_w, "7-ChasePunch"); break;
-     case PROJECT8:
-       XkwSetWidgetLabel(control_mode_w, "8-PathPlanning"); break;
-     case PROJECT9:
-       XkwSetWidgetLabel(control_mode_w, "9-Grasp"); break;
-     case PROJECT10:
-       XkwSetWidgetLabel(control_mode_w, "10-Model"); break;
-     case PROJECT11:
-       XkwSetWidgetLabel(control_mode_w, "11-Belief"); break;
-     default: break;
+    case PROJECT1:
+      XkwSetWidgetLabel(control_mode_w, "1-MotorUnits"); break;
+    case PROJECT2:
+      XkwSetWidgetLabel(control_mode_w, "2-ArmKinematics"); break;
+    case PROJECT3:
+      XkwSetWidgetLabel(control_mode_w, "3-Vision"); break;
+    case PROJECT4:
+      XkwSetWidgetLabel(control_mode_w, "4-SearchTrack"); break;
+    case PROJECT5:
+      XkwSetWidgetLabel(control_mode_w, "5-StereoKinematics"); break;
+    case PROJECT6:
+      XkwSetWidgetLabel(control_mode_w, "6-Kalman"); break;
+    case PROJECT7:
+      XkwSetWidgetLabel(control_mode_w, "7-ChasePunch"); break;
+    case PROJECT8:
+      XkwSetWidgetLabel(control_mode_w, "8-PathPlanning"); break;
+    case PROJECT9:
+      XkwSetWidgetLabel(control_mode_w, "9-Grasp"); break;
+    case PROJECT10:
+      XkwSetWidgetLabel(control_mode_w, "10-Model"); break;
+    case PROJECT11:
+      XkwSetWidgetLabel(control_mode_w, "11-Belief"); break;
+    case PROJECT12:
+      XkwSetWidgetLabel(control_mode_w, "12-PegAndHole"); break;
+    default: break;
   }
   //call init here makes it independent of timer running
   initialize_control_mode(&Roger);
 }
+/*}}}*/
 
-void initialize_room(roger)
-Robot * roger;
+void initialize_room(roger)/*{{{*/
+  Robot * roger;
 {
   int i,j;
   FILE *fp;
@@ -741,17 +768,20 @@ Robot * roger;
 
   // read in appropriate Room file selected by user
   switch (roger->room_num) {
-     case R0:
-       fp = fopen("ROOMS/R0.txt", "r");
-       break;
-     case R1:
-       fp = fopen("ROOMS/R1.txt", "r");
-       break;
-     case R2:
-       fp = fopen("ROOMS/R2.txt", "r");
-       break;
-     default:
-       break;
+    case R0:
+      fp = fopen("ROOMS/R0.txt", "r");
+      break;
+    case R1:
+      fp = fopen("ROOMS/R1.txt", "r");
+      break;
+    case R2:
+      fp = fopen("ROOMS/R2.txt", "r");
+      break;
+    case R3:
+      fp = fopen("ROOMS/R3.txt", "r");
+      break;
+    default:
+      break;
   }
 
   // Initialize world geometry according to Room file
@@ -766,30 +796,31 @@ Robot * roger;
       roger->arm_map[RIGHT].potential_map[i][j] = 1.0;
 
       switch (line[j]) {
-         case 'B':
-	   roger->world_map.occupancy_map[i][j] = OBSTACLE;
-	   roger->world_map.potential_map[i][j] = 1.0;
-	   roger->world_map.color_map[i][j] = DARKBLUE;
-	   break;
-         case 'G':
-	   roger->world_map.occupancy_map[i][j] = OBSTACLE;
-	   roger->world_map.potential_map[i][j] = 1.0;
-	   roger->world_map.color_map[i][j] = LIGHTGREEN;
-	   break;
-         case 'K':
-	   roger->world_map.occupancy_map[i][j] = OBSTACLE;
-	   roger->world_map.potential_map[i][j] = 1.0;
-	   roger->world_map.color_map[i][j] = 0;
-	   break;
-         default:
-	   break;
+        case 'B':
+          roger->world_map.occupancy_map[i][j] = OBSTACLE;
+          roger->world_map.potential_map[i][j] = 1.0;
+          roger->world_map.color_map[i][j] = DARKBLUE;
+          break;
+        case 'G':
+          roger->world_map.occupancy_map[i][j] = OBSTACLE;
+          roger->world_map.potential_map[i][j] = 1.0;
+          roger->world_map.color_map[i][j] = LIGHTGREEN;
+          break;
+        case 'K':
+          roger->world_map.occupancy_map[i][j] = OBSTACLE;
+          roger->world_map.potential_map[i][j] = 1.0;
+          roger->world_map.color_map[i][j] = 0;
+          break;
+        default:
+          break;
       }
     }
   }
   fclose(fp);
 }
+/*}}}*/
 
-int change_room_num()
+int change_room_num()/*{{{*/
 {
   static int room_num;
 
@@ -798,46 +829,50 @@ int change_room_num()
 }
 
 void x_room_proc(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+  Widget w;
+  XtPointer client_data, call_data;
 {
   Roger.room_num = change_room_num();
 
   switch (Roger.room_num) {
-     case R0:
-       XkwSetWidgetLabel(room_w, "Room: 0");
-       break;
-     case R1:
-       XkwSetWidgetLabel(room_w, "Room: 1");
-       break;
-     case R2:
-       XkwSetWidgetLabel(room_w, "Room: 2");
-       break;
-     default:
-       break;
+    case R0:
+      XkwSetWidgetLabel(room_w, "Room: 0");
+      break;
+    case R1:
+      XkwSetWidgetLabel(room_w, "Room: 1");
+      break;
+    case R2:
+      XkwSetWidgetLabel(room_w, "Room: 2");
+      break;
+    case R3:
+      XkwSetWidgetLabel(room_w, "Room: 3");
+    default:
+      break;
   }
   initialize_room(&Roger);
 }
+/*}}}*/
 
-void x_visualize_proc(w,client_data,call_data)
+void x_visualize_proc(w,client_data,call_data)/*{{{*/
 {
   if (draw_visual == TRUE) draw_visual=FALSE;
   else draw_visual = TRUE;
 }
 
 void x_quit_proc(w, client_data, call_data)
-Widget w;
-XtPointer call_data, client_data;
+  Widget w;
+  XtPointer call_data, client_data;
 {
   XFreePixmap(display, pixmap);
   XFreeGC(display, gc);
   XtDestroyApplicationContext(app_con);
   exit(0);
 }
+/*}}}*/
 
-void x_canvas_proc(w, client_data, call_data)
-Widget w;
-XtPointer call_data, client_data;
+void x_canvas_proc(w, client_data, call_data)/*{{{*/
+  Widget w;
+  XtPointer call_data, client_data;
 {
   XEvent *event = ((XEvent *) call_data);
   char text[10];
@@ -849,57 +884,59 @@ XtPointer call_data, client_data;
   void x_expose(), x_clear();
 
   switch (event->type) {
-     case ConfigureNotify:
-       nwidth = event->xconfigure.width;
-       nheight = event->xconfigure.height;
-       break;
-     case Expose:
-       if (nwidth == width && nheight == height)
-	 x_expose();
-       else {
-	 /* width = nwidth; height = nheight; */
-	 x_expose();
-       }
-       break;
-
-  case ButtonPress:
-    Roger.button_reference[X] = D2WX(zoom,event->xbutton.x);
-    Roger.button_reference[Y] = D2WY(zoom,event->xbutton.y);
-    
-    Roger.button_event = event->xbutton.button;
-    if (event->xbutton.button == LEFT_BUTTON) { }
-    break;
-
-  case ButtonRelease:
-    break;
-    
-  case KeyPress:
-    c = XLookupString((XKeyEvent *) event, text, 10, &key, 0);
-    if (c == 1)
-      switch (text[0]) {
-         case 'h':
-	   break;
-         case 'c':
-	   x_clear();
-	   x_expose();
-	   break;
-         case 'q':
-	   x_quit_proc(w, client_data, call_data);
+    case ConfigureNotify:
+      nwidth = event->xconfigure.width;
+      nheight = event->xconfigure.height;
+      break;
+    case Expose:
+      if (nwidth == width && nheight == height)
+        x_expose();
+      else {
+        /* width = nwidth; height = nheight; */
+        x_expose();
       }
+      break;
+
+    case ButtonPress:
+      Roger.button_reference[X] = D2WX(zoom,event->xbutton.x);
+      Roger.button_reference[Y] = D2WY(zoom,event->xbutton.y);
+
+      Roger.button_event = event->xbutton.button;
+      if (event->xbutton.button == LEFT_BUTTON) { }
+      break;
+
+    case ButtonRelease:
+      break;
+
+    case KeyPress:
+      c = XLookupString((XKeyEvent *) event, text, 10, &key, 0);
+      if (c == 1)
+        switch (text[0]) {
+          case 'h':
+            break;
+          case 'c':
+            x_clear();
+            x_expose();
+            break;
+          case 'q':
+            x_quit_proc(w, client_data, call_data);
+        }
   }
 }
+/*}}}*/
 
-void x_draw_line(color, start_x, start_y, end_x, end_y)
-int color;
-double start_x, start_y, end_x, end_y;
+void x_draw_line(color, start_x, start_y, end_x, end_y)/*{{{*/
+  int color;
+  double start_x, start_y, end_x, end_y;
 {
   XSetForeground(display, gc, world_colors[color].display_color);
   XDrawLine(display, pixmap, gc,
-	    W2DX(zoom, start_x), W2DY(zoom, start_y),
-	    W2DX(zoom, end_x), W2DY(zoom, end_y));
+      W2DX(zoom, start_x), W2DY(zoom, start_y),
+      W2DX(zoom, end_x), W2DY(zoom, end_y));
 }
+/*}}}*/
 
-void x_expose()
+void x_expose()/*{{{*/
 {
   XCopyArea(display, pixmap, window, gc, 0, 0, width, height, 0, 0);
 }
@@ -909,12 +946,13 @@ void x_clear()
   XSetForeground(display, gc, background);
   XFillRectangle(display, pixmap, gc, 0, 0, width, height);
 }
+/*}}}*/
 
 /* forward kinematics in base frame **************************************/
-void SIMfwd_kinematics(arm_id, theta1, theta2, x, y)
-int arm_id;
-double theta1, theta2;
-double *x, *y;
+void SIMfwd_kinematics(arm_id, theta1, theta2, x, y)/*{{{*/
+  int arm_id;
+  double theta1, theta2;
+  double *x, *y;
 {
   *x = L_ARM1 * cos(theta1) + L_ARM2 * cos(theta1 + theta2);
   *y = L_ARM1 * sin(theta1) + L_ARM2 * sin(theta1 + theta2);
@@ -922,18 +960,20 @@ double *x, *y;
   if (arm_id == LEFT) *y += ARM_OFFSET;
   else *y -= ARM_OFFSET;
 }
+/*}}}*/
 
-void SIMarm_Jacobian(theta1,theta2, Jacobian)
-double theta1,theta2;
-double Jacobian[2][2];
+void SIMarm_Jacobian(theta1,theta2, Jacobian)/*{{{*/
+  double theta1,theta2;
+  double Jacobian[2][2];
 {
   Jacobian[0][0] = -L_ARM1*sin(theta1) - L_ARM2*sin(theta1 + theta2);
   Jacobian[0][1] = -L_ARM2*sin(theta1 + theta2);
   Jacobian[1][0] =  L_ARM1*cos(theta1) + L_ARM2*cos(theta1 + theta2);
   Jacobian[1][1] =  L_ARM2*cos(theta1 + theta2);
 }
+/*}}}*/
 
-void compute_external_forces()
+void compute_external_forces()/*{{{*/
 {
   int i, j, ii, jj, row, col, thetai, thetaj;
   double ri[2], rj[2];
@@ -958,7 +998,7 @@ void compute_external_forces()
 
   objects[TOY].net_extForce[X] = objects[TOY].net_extForce[Y] =
     objects[TOY].net_extForce[THETA] = 0.0;
-     
+
   for (i=0; i<(NBODY-1); ++i) { // compute force on body i by body j
     for (j=(i+1); j<NBODY; ++j) {
 
@@ -966,104 +1006,104 @@ void compute_external_forces()
 
       // body #4 is the occupancy grid - sum compression      
       if (j==4){ // needs to be upgraded too
-	//	printf("checking body i=%d bouncing on OBSTACLE j=%d\n", i,j);
-	for (ii=0; ii<obji.N; ++ii) {
-	  thetai = (double)ii * (2*M_PI/obji.N);
-          
-	  // position of the first vertex
-	  //	  theta = (double)k*(2.0*M_PI/3.0);
-	  //	  xt = RT*cos((double)k*one_twenty); 
-	  //	  yt = RT*sin((double)k*one_twenty); 
-	  ri[X] = objects[i].position[X] 
-	    + (objects[i].radius * cos(thetai))
-	    * cos(objects[i].position[THETA]) 
-	    - (objects[i].radius * sin(thetai))
-	    * sin(objects[i].position[THETA]);
-	  ri[Y] = objects[i].position[Y] 
-	    + (objects[i].radius * cos(thetai))
-	    * sin(objects[i].position[THETA]) 
-	    + (objects[i].radius * sin(thetai))
-	    * cos(objects[i].position[THETA]);
+        //	printf("checking body i=%d bouncing on OBSTACLE j=%d\n", i,j);
+        for (ii=0; ii<obji.N; ++ii) {
+          thetai = (double)ii * (2*M_PI/obji.N);
 
-	  for (row=0; row<NBINS; ++row) {
-	    for (col=0; col<NBINS; ++col) {
-	      if (Roger.world_map.occupancy_map[row][col] == OBSTACLE) {
-		dr[X] = ri[X] - (MIN_X + (col+0.5)*XDELTA);
-		dr[Y] = ri[Y] - (MAX_Y - (row+0.5)*YDELTA);
-		mag = sqrt(SQR(dr[X]) + SQR(dr[Y]));
-		dij = MAX(0.0, (obji.Rsphere + R_OBSTACLE - mag));
-		fx = K_COLLIDE*dij*(dr[X]/mag);
-		fy = K_COLLIDE*dij*(dr[Y]/mag);
+          // position of the first vertex
+          //	  theta = (double)k*(2.0*M_PI/3.0);
+          //	  xt = RT*cos((double)k*one_twenty); 
+          //	  yt = RT*sin((double)k*one_twenty); 
+          ri[X] = objects[i].position[X] 
+            + (objects[i].radius * cos(thetai))
+            * cos(objects[i].position[THETA]) 
+            - (objects[i].radius * sin(thetai))
+            * sin(objects[i].position[THETA]);
+          ri[Y] = objects[i].position[Y] 
+            + (objects[i].radius * cos(thetai))
+            * sin(objects[i].position[THETA]) 
+            + (objects[i].radius * sin(thetai))
+            * cos(objects[i].position[THETA]);
 
-		rx = obji.radius * cos(obji.position[THETA] + thetai);
-		ry = obji.radius * sin(obji.position[THETA] + thetai);
-		tz = rx * fy - fx * ry;
+          for (row=0; row<NBINS; ++row) {
+            for (col=0; col<NBINS; ++col) {
+              if (Roger.world_map.occupancy_map[row][col] == OBSTACLE) {
+                dr[X] = ri[X] - (MIN_X + (col+0.5)*XDELTA);
+                dr[Y] = ri[Y] - (MAX_Y - (row+0.5)*YDELTA);
+                mag = sqrt(SQR(dr[X]) + SQR(dr[Y]));
+                dij = MAX(0.0, (obji.Rsphere + R_OBSTACLE - mag));
+                fx = K_COLLIDE*dij*(dr[X]/mag);
+                fy = K_COLLIDE*dij*(dr[Y]/mag);
 
-		objects[i].net_extForce[X] += fx;
-		objects[i].net_extForce[Y] += fy;
-		objects[i].net_extForce[THETA] += tz;
-	    
-		//    rx = objj.radius * cos(objj.position[THETA] + thetaj);
-		//    ry = objj.radius * sin(objj.position[THETA] + thetaj);
-		//    tz = rx * fy - fx * ry;
-		//
-		//    objects[j].net_extForce[X] -= fx;
-		//    objects[j].net_extForce[Y] -= fy;
-		//    objects[j].net_extForce[THETA] -= tz;
+                rx = obji.radius * cos(obji.position[THETA] + thetai);
+                ry = obji.radius * sin(obji.position[THETA] + thetai);
+                tz = rx * fy - fx * ry;
 
-	      }
-	    }
-	  }
-	}
-	//	printf("\tforce on body i=%d  f = [%6.4lf %6.4lf %6.4lf]\n", i,
-	//           objects[i].net_extForce[X], objects[i].net_extForce[Y], 
-	//	       objects[i].net_extForce[THETA]);
+                objects[i].net_extForce[X] += fx;
+                objects[i].net_extForce[Y] += fy;
+                objects[i].net_extForce[THETA] += tz;
+
+                //    rx = objj.radius * cos(objj.position[THETA] + thetaj);
+                //    ry = objj.radius * sin(objj.position[THETA] + thetaj);
+                //    tz = rx * fy - fx * ry;
+                //
+                //    objects[j].net_extForce[X] -= fx;
+                //    objects[j].net_extForce[Y] -= fy;
+                //    objects[j].net_extForce[THETA] -= tz;
+
+              }
+            }
+          }
+        }
+        //	printf("\tforce on body i=%d  f = [%6.4lf %6.4lf %6.4lf]\n", i,
+        //           objects[i].net_extForce[X], objects[i].net_extForce[Y], 
+        //	       objects[i].net_extForce[THETA]);
       }
       else { // j not equal to 4: BASE || ARM#1 || ARM#2 || circle object
-	for (ii=0; ii<obji.N; ++ii) {
-	  thetai = (double)ii * (2*M_PI/obji.N);
-          
-	  // position of the first vertex
-	  //	  theta = (double)k*(2.0*M_PI/3.0);
-	  //	  xt = RT*cos((double)k*one_twenty); 
-	  //	  yt = RT*sin((double)k*one_twenty); 
-	  ri[X] = obji.position[X] + 
-	    obji.radius * cos(obji.position[THETA] + thetai);
-	  ri[Y] = obji.position[Y] + 
-	    obji.radius * sin(obji.position[THETA] + thetai);
-	  
-	  for (jj=0; jj<objj.N; ++jj) {
-	    thetaj = (double)jj * (2*M_PI/objj.N);
-          
-	    rj[X] = objj.position[X] + 
-	      objj.radius * cos(objj.position[THETA] + thetaj);
-	    rj[Y] = objj.position[Y] + 
-	      objj.radius * sin(objj.position[THETA] + thetaj);
+        for (ii=0; ii<obji.N; ++ii) {
+          thetai = (double)ii * (2*M_PI/obji.N);
 
-	    dr[X] = ri[X] - rj[X];
-	    dr[Y] = ri[Y] - rj[Y];
-	    mag = sqrt(SQR(dr[X]) + SQR(dr[Y]));
-	    dij = MAX(0.0, (obji.Rsphere + objj.Rsphere - mag)); 
-	    fx = K_COLLIDE*dij*(dr[X]/mag);
-	    fy = K_COLLIDE*dij*(dr[Y]/mag);
+          // position of the first vertex
+          //	  theta = (double)k*(2.0*M_PI/3.0);
+          //	  xt = RT*cos((double)k*one_twenty); 
+          //	  yt = RT*sin((double)k*one_twenty); 
+          ri[X] = obji.position[X] + 
+            obji.radius * cos(obji.position[THETA] + thetai);
+          ri[Y] = obji.position[Y] + 
+            obji.radius * sin(obji.position[THETA] + thetai);
 
-	    rx = obji.radius * cos(obji.position[THETA] + thetai);
-	    ry = obji.radius * sin(obji.position[THETA] + thetai);
-	    tz = rx * fy - fx * ry;
+          for (jj=0; jj<objj.N; ++jj) {
+            thetaj = (double)jj * (2*M_PI/objj.N);
 
-	    objects[i].net_extForce[X] += fx;
-	    objects[i].net_extForce[Y] += fy;
-	    objects[i].net_extForce[THETA] += tz;
-	    
-	    rx = objj.radius * cos(objj.position[THETA] + thetaj);
-	    ry = objj.radius * sin(objj.position[THETA] + thetaj);
-	    tz = rx * fy - fx * ry;
+            rj[X] = objj.position[X] + 
+              objj.radius * cos(objj.position[THETA] + thetaj);
+            rj[Y] = objj.position[Y] + 
+              objj.radius * sin(objj.position[THETA] + thetaj);
 
-	    objects[j].net_extForce[X] -= fx;
-	    objects[j].net_extForce[Y] -= fy;
-	    objects[j].net_extForce[THETA] -= tz;
-	  }
-	}
+            dr[X] = ri[X] - rj[X];
+            dr[Y] = ri[Y] - rj[Y];
+            mag = sqrt(SQR(dr[X]) + SQR(dr[Y]));
+            dij = MAX(0.0, (obji.Rsphere + objj.Rsphere - mag)); 
+            fx = K_COLLIDE*dij*(dr[X]/mag);
+            fy = K_COLLIDE*dij*(dr[Y]/mag);
+
+            rx = obji.radius * cos(obji.position[THETA] + thetai);
+            ry = obji.radius * sin(obji.position[THETA] + thetai);
+            tz = rx * fy - fx * ry;
+
+            objects[i].net_extForce[X] += fx;
+            objects[i].net_extForce[Y] += fy;
+            objects[i].net_extForce[THETA] += tz;
+
+            rx = objj.radius * cos(objj.position[THETA] + thetaj);
+            ry = objj.radius * sin(objj.position[THETA] + thetaj);
+            tz = rx * fy - fx * ry;
+
+            objects[j].net_extForce[X] -= fx;
+            objects[j].net_extForce[Y] -= fy;
+            objects[j].net_extForce[THETA] -= tz;
+          }
+        }
       }
     }
   }
@@ -1089,10 +1129,11 @@ void compute_external_forces()
 
   //  printf("exiting compute_external_forces()\n"); fflush(stdout);
 }
+/*}}}*/
 
-void copy_object(i, obj)
-int i;
-PolyBall * obj;
+void copy_object(i, obj)/*{{{*/
+  int i;
+  PolyBall * obj;
 {
   obj->id = objects[i].id;
   obj->N = objects[i].N;
@@ -1112,10 +1153,10 @@ PolyBall * obj;
   obj->net_extForce[Y] = objects[i].net_extForce[Y];
   obj->net_extForce[THETA] = objects[i].net_extForce[THETA];
 }
-
+/*}}}*/
 // copy the pos/vel info from device (mobile_base, arms, toy) structures
 //    into inertial "PolyBall objects[NBODY]" arrayv
-void update_objects() 
+void update_objects() /*{{{*/
 {
   double x, y, pb[4], pw[4], vb[4], vw[4], J[2][2];
 
@@ -1161,7 +1202,7 @@ void update_objects()
   //  objects[ARM1].radius = 0.0;
   //  objects[ARM1].mass = M_ARM1;
   //  objects[ARM1].moi = I_ARM1;
-     
+
   objects[ARM1].position[X] = pw[X];
   objects[ARM1].position[Y] = pw[Y];
   objects[ARM1].position[THETA] = 0.0;
@@ -1196,7 +1237,7 @@ void update_objects()
   //  objects[ARM2].radius = 0.0;
   //  objects[ARM2].mass = M_ARM1;
   //  objects[ARM2].moi = I_ARM1;
-  
+
   objects[ARM2].position[X] = pw[X];
   objects[ARM2].position[Y] = pw[Y];
   objects[ARM2].position[THETA] = 0.0; 
@@ -1208,7 +1249,7 @@ void update_objects()
   // angular acceleration of hand is not relevant to system dynamics
 
 
-  /****************** 3: TOY OBJECT - CIRCLE || TRIANGLE *********************/
+  /****************** 3: TOY OBJECT - CIRCLE || TRIANGLE || SQUARE*********************/
   objects[TOY].id = toy.id;
   objects[TOY].N = toy.N;
   objects[TOY].Rsphere = toy.Rsphere;
@@ -1224,11 +1265,11 @@ void update_objects()
   objects[TOY].velocity[Y] = toy.velocity[Y];
   objects[TOY].velocity[THETA] = toy.velocity[THETA];
 }
-
+/*}}}*/
 #define NSAMPLES 10
 
-void update_cspace_arms(roger)
-Robot * roger;
+void update_cspace_arms(roger)/*{{{*/
+  Robot * roger;
 { 
   int i,j, arm, xbin, ybin, dl, link, collide;
   double t1, t2, x, y, dx[3], dy[3];
@@ -1241,66 +1282,67 @@ Robot * roger;
     for (i=0;i<NBINS;++i) {
       t2 = T2_MAX - (i+0.5)*TDELTA;
       for (j=0;j<NBINS;++j) {
-	t1 = T1_MIN + (j+0.5)*TDELTA;
-	
-	// default status
-	roger->arm_map[arm].occupancy_map[i][j] = FREESPACE;
-	collide=FALSE;
-	if ((j <= 0) || (j >= (NBINS - 1))) {
-	  Roger.arm_map[arm].occupancy_map[i][j] = OBSTACLE;
-	  Roger.arm_map[arm].potential_map[i][j] = 1.0;
-	}
-	else if ((i <= 0) || (i >= (NBINS - 1))) {
-	  Roger.arm_map[arm].occupancy_map[i][j] = OBSTACLE;
-	  Roger.arm_map[arm].potential_map[i][j] = 1.0;
-	}
-	else {
-	  // in base coordinates
-	  if (arm==LEFT) {x = 0.0; y = ARM_OFFSET;}
-	  else  {x = 0.0; y = -ARM_OFFSET;}
-	  dx[1] = L_ARM1*cos(t1)/NSAMPLES;
-	  dx[2] = L_ARM2*cos(t1+t2)/NSAMPLES;
-	  dy[1] = L_ARM1*sin(t1)/NSAMPLES;
-	  dy[2] = L_ARM2*sin(t1+t2)/NSAMPLES;
+        t1 = T1_MIN + (j+0.5)*TDELTA;
 
-	  // walk the length of the manipulator in Cartesian space
-	  for (link=1; ((link <= 2) && (!collide)); ++link) {
-	    for (dl=0; (dl<NSAMPLES); ++dl) {
-	      x += dx[link]; y += dy[link];
-	      
-	      b[0]=x; b[1]=y; b[2]=0.0; b[3]=1.0;
-	      
-	      matrix_mult(4, 4, wTb, 1, b, w);
-	      
-	      xbin = (int)((w[0]-MIN_X)/XDELTA);
-	      ybin = (int)((MAX_Y-w[1])/YDELTA);
+        // default status
+        roger->arm_map[arm].occupancy_map[i][j] = FREESPACE;
+        collide=FALSE;
+        if ((j <= 0) || (j >= (NBINS - 1))) {
+          Roger.arm_map[arm].occupancy_map[i][j] = OBSTACLE;
+          Roger.arm_map[arm].potential_map[i][j] = 1.0;
+        }
+        else if ((i <= 0) || (i >= (NBINS - 1))) {
+          Roger.arm_map[arm].occupancy_map[i][j] = OBSTACLE;
+          Roger.arm_map[arm].potential_map[i][j] = 1.0;
+        }
+        else {
+          // in base coordinates
+          if (arm==LEFT) {x = 0.0; y = ARM_OFFSET;}
+          else  {x = 0.0; y = -ARM_OFFSET;}
+          dx[1] = L_ARM1*cos(t1)/NSAMPLES;
+          dx[2] = L_ARM2*cos(t1+t2)/NSAMPLES;
+          dy[1] = L_ARM1*sin(t1)/NSAMPLES;
+          dy[2] = L_ARM2*sin(t1+t2)/NSAMPLES;
 
-	      if (roger->world_map.occupancy_map[ybin][xbin] == OBSTACLE)
-		collide = TRUE;
-	    }
-	  }
-	  if (collide) {
-	    roger->arm_map[arm].occupancy_map[i][j] = OBSTACLE;
-	    roger->arm_map[arm].potential_map[i][j] = 1.0;
-	  }
-	}
-	//map goals
-	SIMfwd_kinematics(arm,t1,t2,&x,&y);
-	b[0]=x; b[1]=y; b[2]=0.0; b[3]=1.0;
-	matrix_mult(4, 4, wTb, 1, b, w);
+          // walk the length of the manipulator in Cartesian space
+          for (link=1; ((link <= 2) && (!collide)); ++link) {
+            for (dl=0; (dl<NSAMPLES); ++dl) {
+              x += dx[link]; y += dy[link];
 
-	xbin = (int)((w[0]-MIN_X)/XDELTA);
-	ybin = (int)((MAX_Y-w[1])/YDELTA);
-	if (roger->world_map.occupancy_map[ybin][xbin] == GOAL) {
-	  roger->arm_map[arm].occupancy_map[i][j] = GOAL;
-	  roger->arm_map[arm].potential_map[i][j] = 0.0;
-	}
+              b[0]=x; b[1]=y; b[2]=0.0; b[3]=1.0;
+
+              matrix_mult(4, 4, wTb, 1, b, w);
+
+              xbin = (int)((w[0]-MIN_X)/XDELTA);
+              ybin = (int)((MAX_Y-w[1])/YDELTA);
+
+              if (roger->world_map.occupancy_map[ybin][xbin] == OBSTACLE)
+                collide = TRUE;
+            }
+          }
+          if (collide) {
+            roger->arm_map[arm].occupancy_map[i][j] = OBSTACLE;
+            roger->arm_map[arm].potential_map[i][j] = 1.0;
+          }
+        }
+        //map goals
+        SIMfwd_kinematics(arm,t1,t2,&x,&y);
+        b[0]=x; b[1]=y; b[2]=0.0; b[3]=1.0;
+        matrix_mult(4, 4, wTb, 1, b, w);
+
+        xbin = (int)((w[0]-MIN_X)/XDELTA);
+        ybin = (int)((MAX_Y-w[1])/YDELTA);
+        if (roger->world_map.occupancy_map[ybin][xbin] == GOAL) {
+          roger->arm_map[arm].occupancy_map[i][j] = GOAL;
+          roger->arm_map[arm].potential_map[i][j] = 0.0;
+        }
       }
     }
   }
 }
+/*}}}*/
 
-//update_cspace_base(roger)
+//update_cspace_base(roger){{{
 //Robot * roger;
 //{ 
 //  int i,j, xbin, ybin, dl, link, collide;
@@ -1339,24 +1381,26 @@ Robot * roger;
 //  //	printf("\n Updating CSPACE for BASE");
 //  fflush(stdout);
 //}
+/*}}}*/
 
-void draw_history()
+void draw_history()/*{{{*/
 {
   int h;
-  
+
   // draw history of all Cartesian arm postures
   XSetForeground(display, gc, world_colors[ARM_COLOR].display_color);
 
   for (h = 0; h < history_ptr; ++h) {
     // draw Cartesian history of the mobile platform
     XFillRectangle(display, pixmap, gc, 
-		   W2DX(zoom, (history[h].base_pos[0]-XDELTA/4.0)),
-		   W2DY(zoom, (history[h].base_pos[1]-YDELTA/4.0)),
-		   W2DR(zoom,XDELTA/2.0), W2DR(zoom,YDELTA/2.0));
+        W2DX(zoom, (history[h].base_pos[0]-XDELTA/4.0)),
+        W2DY(zoom, (history[h].base_pos[1]-YDELTA/4.0)),
+        W2DR(zoom,XDELTA/2.0), W2DR(zoom,YDELTA/2.0));
   }
 }
+/*}}}*/
 
-void draw_all() 
+void draw_all() /*{{{*/
 {
   int n;
   char buffer[64];
@@ -1387,80 +1431,80 @@ void draw_all()
 
   switch (Roger.control_mode) {
 
-  case PROJECT2: // VISION
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project2_visualize(&Roger);
-    }
-    break;
-  case PROJECT3: // SEARCHTRACK
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project3_visualize(&Roger);
-    }
-    break;
-  case PROJECT4: // LOCALIZE
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project4_visualize(&Roger);
-    }
-    break;
-  case PROJECT5: // KALMAN FILTER
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project5_visualize(&Roger);
-    }
-    break;
-  case PROJECT6:  // KINEMATICS
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project6_visualize(&Roger);
-    }
-    break;
-  case PROJECT7: // CHASEPUNCH
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project7_visualize(&Roger);
-    }
-    break;
-  case PROJECT8: // PATHPLANNING
-    // harmonic functions - put object and Roger on top of
-    // the potential field and streamlines in project6-visualize
-    if (draw_visual==TRUE) project8_visualize(&Roger);
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    break;
-  case PROJECT9: // GRASP
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project9_visualize(&Roger);
-    }
-    break;
-  case PROJECT10: // MODEL
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project10_visualize(&Roger);
-    }
-    break;
-  case PROJECT11: // BELIEF
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    if (draw_visual==TRUE) {
-      project11_visualize(&Roger);
-    }
-    break;
-  default:
-    draw_object(objects[TOY]);
-    draw_roger(mobile_base, arms, eyes);
-    break;
+    case PROJECT2: // VISION
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project2_visualize(&Roger);
+      }
+      break;
+    case PROJECT3: // SEARCHTRACK
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project3_visualize(&Roger);
+      }
+      break;
+    case PROJECT4: // LOCALIZE
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project4_visualize(&Roger);
+      }
+      break;
+    case PROJECT5: // KALMAN FILTER
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project5_visualize(&Roger);
+      }
+      break;
+    case PROJECT6:  // KINEMATICS
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project6_visualize(&Roger);
+      }
+      break;
+    case PROJECT7: // CHASEPUNCH
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project7_visualize(&Roger);
+      }
+      break;
+    case PROJECT8: // PATHPLANNING
+      // harmonic functions - put object and Roger on top of
+      // the potential field and streamlines in project6-visualize
+      if (draw_visual==TRUE) project8_visualize(&Roger);
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      break;
+    case PROJECT9: // GRASP
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project9_visualize(&Roger);
+      }
+      break;
+    case PROJECT10: // MODEL
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project10_visualize(&Roger);
+      }
+      break;
+    case PROJECT11: // BELIEF
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      if (draw_visual==TRUE) {
+        project11_visualize(&Roger);
+      }
+      break;
+    default:
+      draw_object(objects[TOY]);
+      draw_roger(mobile_base, arms, eyes);
+      break;
   }
 
   if (HISTORY) draw_history();
@@ -1477,7 +1521,7 @@ void draw_all()
     n = sprintf(buffer, "VISUALIZE: OFF");
     XDrawString(display,pixmap,gc,W2DX(zoom,2.6),W2DY(zoom,1.8),buffer, n);
   }
-  
+
   if (COUPLED_DYNAMICS) {
     n = sprintf(buffer, "WHOLE-BODY DYNAMICS");
     XDrawString(display,pixmap,gc,W2DX(zoom,-3.625),W2DY(zoom,1.8),buffer, n);
@@ -1495,7 +1539,7 @@ void draw_all()
     n = sprintf(buffer, "BASE: OFF");
     XDrawString(display,pixmap,gc,W2DX(zoom,-4.0),W2DY(zoom,1.65),buffer, n);
   }
-  
+
   if (ACTUATE_ARMS) {
     n = sprintf(buffer, "ARMS: ON");
     XDrawString(display,pixmap,gc,W2DX(zoom,-3.3125),W2DY(zoom,1.65),buffer,n);
@@ -1504,7 +1548,7 @@ void draw_all()
     n = sprintf(buffer, "ARMS: OFF");
     XDrawString(display,pixmap,gc,W2DX(zoom,-3.3125),W2DY(zoom,1.65),buffer,n);
   }
-  
+
   if (ACTUATE_EYES) {
     n = sprintf(buffer, "EYES: ON");
     XDrawString(display,pixmap,gc,W2DX(zoom,-2.625),W2DY(zoom,1.65),buffer, n);
@@ -1513,21 +1557,23 @@ void draw_all()
     n = sprintf(buffer, "EYES: OFF");
     XDrawString(display,pixmap,gc,W2DX(zoom,-2.625),W2DY(zoom,1.65),buffer, n);
   }
-  
+
 
   x_expose();
 }
+/*}}}*/
 
-void draw_circle(cu, cv, r, fill)
-int cu, cv, r, fill;
+void draw_circle(cu, cv, r, fill)/*{{{*/
+  int cu, cv, r, fill;
 {
   if (fill == NOFILL)
     XDrawArc(display, pixmap, gc, cu - r, cv - r, 2* r , 2* r , 0, 64*360);
   else
     XFillArc(display, pixmap, gc, cu-r, cv-r, 2*r, 2*r, 0, 64*360);
 }
+/*}}}*/
 
-void draw_frames()
+void draw_frames()/*{{{*/
 {
 #define FRAME_L 0.04
 #define FRAME_T 0.045
@@ -1537,27 +1583,27 @@ void draw_frames()
   // the Cartesian frame
   /* x-axis */
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,0.0), W2DY(zoom,0.0), 
-	    W2DX(zoom,(FRAME_L*4.0)), W2DY(zoom,0.0));
+      W2DX(zoom,0.0), W2DY(zoom,0.0), 
+      W2DX(zoom,(FRAME_L*4.0)), W2DY(zoom,0.0));
   XDrawString(display,pixmap,gc,W2DX(zoom,FRAME_T*4.0),W2DY(zoom,0.0),"x",1);
 
   /* y-axis */
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,0.0), W2DY(zoom,0.0), 
-	    W2DX(zoom,0.0), W2DY(zoom,FRAME_L*4.0));
+      W2DX(zoom,0.0), W2DY(zoom,0.0), 
+      W2DX(zoom,0.0), W2DY(zoom,FRAME_L*4.0));
   XDrawString(display,pixmap,gc,W2DX(zoom,0.0),W2DY(zoom,FRAME_T*4.0),"y",1);
 
   // the LEFT CSpace frame
   /* q1-axis */
   XDrawLine(display, pixmap, gc, 
-	    T12LD(0.0), T22LD(0.0), 
-	    T12LD(FRAME_L*2.0*M_PI), T22LD(0.0));
+      T12LD(0.0), T22LD(0.0), 
+      T12LD(FRAME_L*2.0*M_PI), T22LD(0.0));
   XDrawString(display,pixmap,gc,T12LD(FRAME_T*2.0*M_PI),T22LD(0.0),"q1",2);
 
   /* q2-axis */
   XDrawLine(display, pixmap, gc, 
-	    T12LD(0.0), T22LD(0.0),
-	    T12LD(0.0), T22LD(FRAME_L*2.0*M_PI));
+      T12LD(0.0), T22LD(0.0),
+      T12LD(0.0), T22LD(FRAME_L*2.0*M_PI));
   XDrawString(display,pixmap,gc,T12LD(0.0),T22LD(FRAME_T*2.0*M_PI),"q2",2);
 
   XDrawString(display, pixmap, gc, T12LD(-0.75), T22LD(-3.5), "left    /", 9);
@@ -1570,12 +1616,12 @@ void draw_frames()
   // the RIGHT CSpace frame
   /* q1-axis */
   XDrawLine(display, pixmap, gc, 
-	    T12RD(0.0), T22RD(0.0), T12RD(FRAME_L*2.0*M_PI), T22RD(0.0));
+      T12RD(0.0), T22RD(0.0), T12RD(FRAME_L*2.0*M_PI), T22RD(0.0));
   XDrawString(display,pixmap,gc,T12RD(FRAME_T*2.0*M_PI),T22RD(0.0),"q1",2);
 
   /* q2-axis */
   XDrawLine(display, pixmap, gc, 
-	    T12RD(0.0), T22RD(0.0), T12RD(0.0), T22RD(FRAME_L*2.0*M_PI));
+      T12RD(0.0), T22RD(0.0), T12RD(0.0), T22RD(FRAME_L*2.0*M_PI));
   XDrawString(display,pixmap,gc,T12RD(0.0),T22RD(FRAME_T*2.0*M_PI),"q2",2);
 
   XDrawString(display,pixmap,gc,T12RD(-0.85),T22RD(-3.5), "right    /", 10);
@@ -1587,9 +1633,10 @@ void draw_frames()
 #undef FRAME_L // 0.04
 #undef FRAME_T // 0.045
 }
+/*}}}*/
 
-void draw_frame(xform)
-double xform[4][4];
+void draw_frame(xform)/*{{{*/
+  double xform[4][4];
 {
 #define FRAME_L 0.04
 #define FRAME_T 0.045
@@ -1598,68 +1645,69 @@ double xform[4][4];
 
   /* x-axis */
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,xform[0][3]), W2DY(zoom,xform[1][3]),
-	    W2DX(zoom,xform[0][3]+FRAME_L*xform[0][0]),
-	    W2DY(zoom,xform[1][3]+FRAME_L*xform[1][0]));
+      W2DX(zoom,xform[0][3]), W2DY(zoom,xform[1][3]),
+      W2DX(zoom,xform[0][3]+FRAME_L*xform[0][0]),
+      W2DY(zoom,xform[1][3]+FRAME_L*xform[1][0]));
   XDrawString(display, pixmap, gc, 
-	      W2DX(zoom,xform[0][3]+FRAME_T*xform[0][0]),
-	      W2DY(zoom,xform[1][3]+FRAME_T*xform[1][0]), "x", 1);
+      W2DX(zoom,xform[0][3]+FRAME_T*xform[0][0]),
+      W2DY(zoom,xform[1][3]+FRAME_T*xform[1][0]), "x", 1);
 
   /* y-axis */
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,xform[0][3]), W2DY(zoom,xform[1][3]),
-	    W2DX(zoom,xform[0][3]+FRAME_L*xform[0][1]),
-	    W2DY(zoom,xform[1][3]+FRAME_L*xform[1][1]));
+      W2DX(zoom,xform[0][3]), W2DY(zoom,xform[1][3]),
+      W2DX(zoom,xform[0][3]+FRAME_L*xform[0][1]),
+      W2DY(zoom,xform[1][3]+FRAME_L*xform[1][1]));
   XDrawString(display,pixmap,gc,
-	      W2DX(zoom,xform[0][3]+FRAME_T*xform[0][1]),
-	      W2DY(zoom,xform[1][3]+FRAME_T*xform[1][1]), "y", 1);
+      W2DX(zoom,xform[0][3]+FRAME_T*xform[0][1]),
+      W2DY(zoom,xform[1][3]+FRAME_T*xform[1][1]), "y", 1);
 #undef FRAME_L // 0.04
 #undef FRAME_T // 0.045
 }
+/*}}}*/
 
-void draw_boundaries()
+void draw_boundaries()/*{{{*/
 {
   /******************************************************************/
   /**  draw world                                                  **/
   XSetForeground(display, gc, foreground);
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,MIN_X), W2DY(zoom,MAX_Y),
-	    W2DX(zoom,MAX_X), W2DY(zoom,MAX_Y));
+      W2DX(zoom,MIN_X), W2DY(zoom,MAX_Y),
+      W2DX(zoom,MAX_X), W2DY(zoom,MAX_Y));
   XDrawLine(display, pixmap, gc,
-	    W2DX(zoom,MAX_X), W2DY(zoom,MAX_Y),
-	    W2DX(zoom,MAX_X), W2DY(zoom,MIN_Y));
+      W2DX(zoom,MAX_X), W2DY(zoom,MAX_Y),
+      W2DX(zoom,MAX_X), W2DY(zoom,MIN_Y));
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,MAX_X), W2DY(zoom,MIN_Y),
-	    W2DX(zoom,MIN_X), W2DY(zoom,MIN_Y));
+      W2DX(zoom,MAX_X), W2DY(zoom,MIN_Y),
+      W2DX(zoom,MIN_X), W2DY(zoom,MIN_Y));
   XDrawLine(display, pixmap, gc,
-	    W2DX(zoom,MIN_X), W2DY(zoom,MIN_Y),
-	    W2DX(zoom,MIN_X), W2DY(zoom,MAX_Y));
+      W2DX(zoom,MIN_X), W2DY(zoom,MIN_Y),
+      W2DX(zoom,MIN_X), W2DY(zoom,MAX_Y));
 
   /* draw LEFT boundaries */
   XSetForeground(display, gc, foreground);
   XDrawLine(display, pixmap, gc, 
-	    T12LD(T1_MIN), T22LD(T2_MAX), T12LD(T1_MAX), T22LD(T2_MAX));
+      T12LD(T1_MIN), T22LD(T2_MAX), T12LD(T1_MAX), T22LD(T2_MAX));
   XDrawLine(display, pixmap, gc, 
-	    T12LD(T1_MAX), T22LD(T2_MAX), T12LD(T1_MAX), T22LD(T2_MIN));
+      T12LD(T1_MAX), T22LD(T2_MAX), T12LD(T1_MAX), T22LD(T2_MIN));
   XDrawLine(display, pixmap, gc, 
-	    T12LD(T1_MAX), T22LD(T2_MIN), T12LD(T1_MIN), T22LD(T2_MIN));
+      T12LD(T1_MAX), T22LD(T2_MIN), T12LD(T1_MIN), T22LD(T2_MIN));
   XDrawLine(display, pixmap, gc,
-	    T12LD(T1_MIN), T22LD(T2_MIN), T12LD(T1_MIN), T22LD(T2_MAX));
+      T12LD(T1_MIN), T22LD(T2_MIN), T12LD(T1_MIN), T22LD(T2_MAX));
 
   /* draw RIGHT boundaries */
   XSetForeground(display, gc, foreground);
   XDrawLine(display, pixmap, gc,
-	    T12RD(T1_MIN), T22RD(T2_MAX), T12RD(T1_MAX), T22RD(T2_MAX));
+      T12RD(T1_MIN), T22RD(T2_MAX), T12RD(T1_MAX), T22RD(T2_MAX));
   XDrawLine(display, pixmap, gc,
-	    T12RD(T1_MAX), T22RD(T2_MAX), T12RD(T1_MAX), T22RD(T2_MIN));
+      T12RD(T1_MAX), T22RD(T2_MAX), T12RD(T1_MAX), T22RD(T2_MIN));
   XDrawLine(display, pixmap, gc,
-	    T12RD(T1_MAX), T22RD(T2_MIN), T12RD(T1_MIN), T22RD(T2_MIN));
+      T12RD(T1_MAX), T22RD(T2_MIN), T12RD(T1_MIN), T22RD(T2_MIN));
   XDrawLine(display, pixmap, gc,
-	    T12RD(T1_MIN), T22RD(T2_MIN), T12RD(T1_MIN), T22RD(T2_MAX));
+      T12RD(T1_MIN), T22RD(T2_MIN), T12RD(T1_MIN), T22RD(T2_MAX));
 }
-
+/*}}}*/
 // draw the NBINSxNBINS potential maps in their respective areas of the canvas
-void draw_potential_maps()
+void draw_potential_maps()/*{{{*/
 {
   int i, j, Cart_grey_index, left_arm_grey_index, right_arm_grey_index;
   double x, y, t1, t2;
@@ -1687,17 +1735,17 @@ void draw_potential_maps()
       XSetForeground(display, gc, world_colors[Cart_grey_index].display_color);
       //   a user map perceived obstacle color, or
       if (Roger.world_map.occupancy_map[i][j] == OBSTACLE)
-	XSetForeground(display, gc, 
-		 world_colors[Roger.world_map.color_map[i][j]].display_color);
+        XSetForeground(display, gc, 
+            world_colors[Roger.world_map.color_map[i][j]].display_color);
       else if (Roger.world_map.occupancy_map[i][j] == DILATED_OBSTACLE)
-	XSetForeground(display, gc, 
-		 world_colors[Roger.world_map.color_map[i][j]].display_color);
+        XSetForeground(display, gc, 
+            world_colors[Roger.world_map.color_map[i][j]].display_color);
       //   a user defined goal
       else if (Roger.world_map.occupancy_map[i][j] == GOAL)
-	XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
+        XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
       XFillRectangle(display, pixmap, gc,
-		     W2DX(zoom,x), W2DY(zoom,y),
-		     (W2DR(zoom,XDELTA) + 1), (W2DR(zoom,YDELTA) + 1));
+          W2DX(zoom,x), W2DY(zoom,y),
+          (W2DR(zoom,XDELTA) + 1), (W2DR(zoom,YDELTA) + 1));
 
       //      // each real obstacle should be outlined in the obstacle color
       //      if (real_world.occupancy_map[i][j] == OBSTACLE) {
@@ -1707,32 +1755,33 @@ void draw_potential_maps()
       //	XDrawRectangle(display, pixmap, gc, W2DX(zoom,x), W2DY(zoom,y),
       //		     (W2DR(zoom,XDELTA)), (W2DR(zoom,YDELTA)));
       //      }
-      
+
       // Left Arm Map
       XSetForeground(display, gc, 
-		     world_colors[left_arm_grey_index].display_color);
+          world_colors[left_arm_grey_index].display_color);
       if (Roger.arm_map[LEFT].occupancy_map[i][j] == OBSTACLE)
-	XSetForeground(display, gc, world_colors[RED].display_color);
+        XSetForeground(display, gc, world_colors[RED].display_color);
       else if (Roger.arm_map[LEFT].occupancy_map[i][j] == GOAL)
-	XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
+        XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
       XFillRectangle(display, pixmap, gc,
-		     T12LD(t1),T22LD(t2),(T2DR(TDELTA)+1),(T2DR(TDELTA)+1));
+          T12LD(t1),T22LD(t2),(T2DR(TDELTA)+1),(T2DR(TDELTA)+1));
 
       // Right Arm Map
       XSetForeground(display, gc, 
-		     world_colors[right_arm_grey_index].display_color);
+          world_colors[right_arm_grey_index].display_color);
       if (Roger.arm_map[RIGHT].occupancy_map[i][j] == OBSTACLE)
-	XSetForeground(display, gc, world_colors[RED].display_color);
+        XSetForeground(display, gc, world_colors[RED].display_color);
       else if (Roger.arm_map[RIGHT].occupancy_map[i][j] == GOAL)
-	XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
+        XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
       XFillRectangle(display, pixmap, gc, 
-		     T12RD(t1),T22RD(t2),(T2DR(TDELTA)+1),(T2DR(TDELTA)+1));
+          T12RD(t1),T22RD(t2),(T2DR(TDELTA)+1),(T2DR(TDELTA)+1));
     }
   }
 }
+/*}}}*/
 
-void draw_object(obj)
-PolyBall obj;
+void draw_object(obj)/*{{{*/
+  PolyBall obj;
 {
   int k;
   double xw, yw, theta;
@@ -1748,12 +1797,13 @@ PolyBall obj;
       + sin(obj.position[THETA]) * (obj.radius*cos(theta))
       + cos(obj.position[THETA]) * (obj.radius*sin(theta));
     draw_circle(W2DX(zoom, xw), W2DY(zoom, yw), 
-		W2DR(zoom,obj.Rsphere),FILL);
+        W2DR(zoom,obj.Rsphere),FILL);
   }
 }
+/*}}}*/
 
-void draw_object2(obj)
-PolyBall obj;
+void draw_object2(obj)/*{{{*/
+  PolyBall obj;
 {
   double x, y, theta, c, s, wTo[4][4], v[4][2], vw[4][2];
   double vertex_o[4], vertex_w[4];
@@ -1763,82 +1813,151 @@ PolyBall obj;
   XSetForeground(display, gc, world_colors[OBJECT_COLOR].display_color);
 
   switch(obj.id) {
-  case CIRCLE:
-    draw_circle(W2DX(zoom,obj.position[X]), W2DY(zoom,obj.position[Y]),
-	      W2DR(zoom,R_BALL), FILL);
-    break;
-  case TRIANGLE:
-    x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
-    c = cos(theta); s = sin(theta);
+    case CIRCLE:
+      draw_circle(W2DX(zoom,obj.position[X]), W2DY(zoom,obj.position[Y]),
+          W2DR(zoom,R_BALL), FILL);
+      break;
+    case TRIANGLE:
+      x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
+      c = cos(theta); s = sin(theta);
 
-    // world-to-object (object frame is frame 0)
-    wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
-    wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
-    wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
-    wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
+      // world-to-object (object frame is frame 0)
+      wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
+      wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
+      wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
+      wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
 
-    // vertices are the same with respect to their local frame
-    v[0][0] = obj.Rsphere*cos(M_PI/12.0);
-    v[0][1] = -v[0][0];
-    v[1][0] = obj.radius + obj.Rsphere*sin(M_PI/12.0);
-    v[1][1] = v[1][0];
+      // vertices are the same with respect to their local frame
+      v[0][0] = obj.Rsphere*cos(M_PI/12.0);
+      v[0][1] = -v[0][0];
+      v[1][0] = obj.radius + obj.Rsphere*sin(M_PI/12.0);
+      v[1][1] = v[1][0];
 
-    v[2][0] = 0.0;                    v[2][1] = 0.0;
-    v[3][0] = 1.0;                    v[3][1] = 1.0;
+      v[2][0] = 0.0;                    v[2][1] = 0.0;
+      v[3][0] = 1.0;                    v[3][1] = 1.0;
 
-    matrix_mult(4, 4, wTo, 2, v, vw);
-    polygon[0].x = (short) (W2DX(zoom, vw[0][0]));
-    polygon[0].y = (short) (W2DY(zoom, vw[1][0]));
-    polygon[1].x = (short) (W2DX(zoom, vw[0][1]));
-    polygon[1].y = (short) (W2DY(zoom, vw[1][1]));
+      matrix_mult(4, 4, wTo, 2, v, vw);
+      polygon[0].x = (short) (W2DX(zoom, vw[0][0]));
+      polygon[0].y = (short) (W2DY(zoom, vw[1][0]));
+      polygon[1].x = (short) (W2DX(zoom, vw[0][1]));
+      polygon[1].y = (short) (W2DY(zoom, vw[1][1]));
 
-    vertex_o[0] = 0.0; vertex_o[1] = obj.radius;
-    vertex_o[2] = 0.0; vertex_o[3] = 1.0; 
-    matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
-    draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
-		W2DR(zoom,obj.Rsphere),FILL);
+      vertex_o[0] = 0.0; vertex_o[1] = obj.radius;
+      vertex_o[2] = 0.0; vertex_o[3] = 1.0; 
+      matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
+      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+          W2DR(zoom,obj.Rsphere),FILL);
 
-    c = cos(2.0*M_PI/3.0); s = sin(2.0*M_PI/3.0);
-    oT1[0][0] =  c;  oT1[0][1] = -s;  oT1[0][2]= 0.0; oT1[0][3]= 0.0;
-    oT1[1][0] =  s;  oT1[1][1] =  c;  oT1[1][2]= 0.0; oT1[1][3]= 0.0;
-    oT1[2][0] = 0.0; oT1[2][1] = 0.0; oT1[2][2]= 1.0; oT1[2][3]= 0.0;
-    oT1[3][0] = 0.0; oT1[3][1] = 0.0; oT1[3][2]= 0.0; oT1[3][3]= 1.0;
+      c = cos(2.0*M_PI/3.0); s = sin(2.0*M_PI/3.0);
+      oT1[0][0] =  c;  oT1[0][1] = -s;  oT1[0][2]= 0.0; oT1[0][3]= 0.0;
+      oT1[1][0] =  s;  oT1[1][1] =  c;  oT1[1][2]= 0.0; oT1[1][3]= 0.0;
+      oT1[2][0] = 0.0; oT1[2][1] = 0.0; oT1[2][2]= 1.0; oT1[2][3]= 0.0;
+      oT1[3][0] = 0.0; oT1[3][1] = 0.0; oT1[3][2]= 0.0; oT1[3][3]= 1.0;
 
-    matrix_mult(4, 4, wTo, 4, oT1, wT1);
-    matrix_mult(4, 4, wT1, 2, v, vw);
-    polygon[2].x = (short) (W2DX(zoom, vw[0][0]));
-    polygon[2].y = (short) (W2DY(zoom, vw[1][0]));
-    polygon[3].x = (short) (W2DX(zoom, vw[0][1]));
-    polygon[3].y = (short) (W2DY(zoom, vw[1][1]));
+      matrix_mult(4, 4, wTo, 4, oT1, wT1);
+      matrix_mult(4, 4, wT1, 2, v, vw);
+      polygon[2].x = (short) (W2DX(zoom, vw[0][0]));
+      polygon[2].y = (short) (W2DY(zoom, vw[1][0]));
+      polygon[3].x = (short) (W2DX(zoom, vw[0][1]));
+      polygon[3].y = (short) (W2DY(zoom, vw[1][1]));
 
-    matrix_mult(4, 4, wT1, 1, vertex_o, vertex_w);
-    draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
-		W2DR(zoom,obj.Rsphere),FILL);
+      matrix_mult(4, 4, wT1, 1, vertex_o, vertex_w);
+      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+          W2DR(zoom,obj.Rsphere),FILL);
 
-    c = cos(4.0*M_PI/3.0); s = sin(4.0*M_PI/3.0);
-    oT2[0][0] =  c;  oT2[0][1] = -s;  oT2[0][2]= 0.0; oT2[0][3]= 0.0;
-    oT2[1][0] =  s;  oT2[1][1] =  c;  oT2[1][2]= 0.0; oT2[1][3]= 0.0;
-    oT2[2][0] = 0.0; oT2[2][1] = 0.0; oT2[2][2]= 1.0; oT2[2][3]= 0.0;
-    oT2[3][0] = 0.0; oT2[3][1] = 0.0; oT2[3][2]= 0.0; oT2[3][3]= 1.0;
+      c = cos(4.0*M_PI/3.0); s = sin(4.0*M_PI/3.0);
+      oT2[0][0] =  c;  oT2[0][1] = -s;  oT2[0][2]= 0.0; oT2[0][3]= 0.0;
+      oT2[1][0] =  s;  oT2[1][1] =  c;  oT2[1][2]= 0.0; oT2[1][3]= 0.0;
+      oT2[2][0] = 0.0; oT2[2][1] = 0.0; oT2[2][2]= 1.0; oT2[2][3]= 0.0;
+      oT2[3][0] = 0.0; oT2[3][1] = 0.0; oT2[3][2]= 0.0; oT2[3][3]= 1.0;
 
-    matrix_mult(4, 4, wTo, 4, oT2, wT2);
-    matrix_mult(4, 4, wT2, 2, v, vw);
-    polygon[4].x = (short) (W2DX(zoom, vw[0][0]));
-    polygon[4].y = (short) (W2DY(zoom, vw[1][0]));
-    polygon[5].x = (short) (W2DX(zoom, vw[0][1]));
-    polygon[5].y = (short) (W2DY(zoom, vw[1][1]));
+      matrix_mult(4, 4, wTo, 4, oT2, wT2);
+      matrix_mult(4, 4, wT2, 2, v, vw);
+      polygon[4].x = (short) (W2DX(zoom, vw[0][0]));
+      polygon[4].y = (short) (W2DY(zoom, vw[1][0]));
+      polygon[5].x = (short) (W2DX(zoom, vw[0][1]));
+      polygon[5].y = (short) (W2DY(zoom, vw[1][1]));
 
-    matrix_mult(4, 4, wT2, 1, vertex_o, vertex_w);
-    draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
-		W2DR(zoom,obj.Rsphere),FILL);
+      matrix_mult(4, 4, wT2, 1, vertex_o, vertex_w);
+      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+          W2DR(zoom,obj.Rsphere),FILL);
 
-    XFillPolygon(display, pixmap, gc, polygon, 6, Convex, CoordModeOrigin);
+      XFillPolygon(display, pixmap, gc, polygon, 6, Convex, CoordModeOrigin);
+      break;
+    case RECT:
+      x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
+      c = cos(theta); s = sin(theta);
+
+      // world-to-object (object frame is frame 0)
+      wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
+      wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
+      wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
+      wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
+
+      // vertices are the same with respect to their local frame
+      v[0][0] = obj.Rsphere*cos(M_PI/12.0);
+      v[0][1] = -v[0][0];
+      v[1][0] = obj.radius + obj.Rsphere*sin(M_PI/12.0);
+      v[1][1] = v[1][0];
+
+      v[2][0] = 0.0;                    v[2][1] = 0.0;
+      v[3][0] = 1.0;                    v[3][1] = 1.0;
+
+      matrix_mult(4, 4, wTo, 2, v, vw);
+      polygon[0].x = (short) (W2DX(zoom, vw[0][0]));
+      polygon[0].y = (short) (W2DY(zoom, vw[1][0]));
+      polygon[1].x = (short) (W2DX(zoom, vw[0][1]));
+      polygon[1].y = (short) (W2DY(zoom, vw[1][1]));
+
+      vertex_o[0] = 0.0; vertex_o[1] = obj.radius;
+      vertex_o[2] = 0.0; vertex_o[3] = 1.0; 
+      matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
+      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+          W2DR(zoom,obj.Rsphere),FILL);
+
+      c = cos(2.0*M_PI/3.0); s = sin(2.0*M_PI/3.0);
+      oT1[0][0] =  c;  oT1[0][1] = -s;  oT1[0][2]= 0.0; oT1[0][3]= 0.0;
+      oT1[1][0] =  s;  oT1[1][1] =  c;  oT1[1][2]= 0.0; oT1[1][3]= 0.0;
+      oT1[2][0] = 0.0; oT1[2][1] = 0.0; oT1[2][2]= 1.0; oT1[2][3]= 0.0;
+      oT1[3][0] = 0.0; oT1[3][1] = 0.0; oT1[3][2]= 0.0; oT1[3][3]= 1.0;
+
+      matrix_mult(4, 4, wTo, 4, oT1, wT1);
+      matrix_mult(4, 4, wT1, 2, v, vw);
+      polygon[2].x = (short) (W2DX(zoom, vw[0][0]));
+      polygon[2].y = (short) (W2DY(zoom, vw[1][0]));
+      polygon[3].x = (short) (W2DX(zoom, vw[0][1]));
+      polygon[3].y = (short) (W2DY(zoom, vw[1][1]));
+
+      matrix_mult(4, 4, wT1, 1, vertex_o, vertex_w);
+      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+          W2DR(zoom,obj.Rsphere),FILL);
+
+      c = cos(4.0*M_PI/3.0); s = sin(4.0*M_PI/3.0);
+      oT2[0][0] =  c;  oT2[0][1] = -s;  oT2[0][2]= 0.0; oT2[0][3]= 0.0;
+      oT2[1][0] =  s;  oT2[1][1] =  c;  oT2[1][2]= 0.0; oT2[1][3]= 0.0;
+      oT2[2][0] = 0.0; oT2[2][1] = 0.0; oT2[2][2]= 1.0; oT2[2][3]= 0.0;
+      oT2[3][0] = 0.0; oT2[3][1] = 0.0; oT2[3][2]= 0.0; oT2[3][3]= 1.0;
+
+      matrix_mult(4, 4, wTo, 4, oT2, wT2);
+      matrix_mult(4, 4, wT2, 2, v, vw);
+      polygon[4].x = (short) (W2DX(zoom, vw[0][0]));
+      polygon[4].y = (short) (W2DY(zoom, vw[1][0]));
+      polygon[5].x = (short) (W2DX(zoom, vw[0][1]));
+      polygon[5].y = (short) (W2DY(zoom, vw[1][1]));
+
+      matrix_mult(4, 4, wT2, 1, vertex_o, vertex_w);
+      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+          W2DR(zoom,obj.Rsphere),FILL);
+
+      XFillPolygon(display, pixmap, gc, polygon, 6, Convex, CoordModeOrigin);
+
   }
 }
+/*}}}*/
 
-void draw_eye(base, eye)
-Base base;
-Eye eye;
+void draw_eye(base, eye)/*{{{*/
+  Base base;
+  Eye eye;
 {
   double px, py;
   double rx, ry, from_x, from_y, to_x, to_y;
@@ -1891,47 +2010,49 @@ Eye eye;
 
   XSetForeground(display, gc, world_colors[GAZE_COLOR].display_color);
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,from_x), W2DY(zoom,from_y),
-	    W2DX(zoom,to_x), W2DY(zoom,to_y));
+      W2DX(zoom,from_x), W2DY(zoom,from_y),
+      W2DX(zoom,to_x), W2DY(zoom,to_y));
 
   XSetForeground(display, gc, foreground);
   draw_circle(W2DX(zoom,px), W2DY(zoom,py), W2DR(zoom,R_EYE), NOFILL);
   draw_circle(W2DX(zoom, px+(R_EYE-R_PUPIL)*rx),
-	      W2DY(zoom, py+(R_EYE-R_PUPIL)*ry), W2DR(zoom,R_PUPIL), FILL);
+      W2DY(zoom, py+(R_EYE-R_PUPIL)*ry), W2DR(zoom,R_PUPIL), FILL);
 }
+/*}}}*/
 
-void draw_image(eye)
-int eye; 
+void draw_image(eye)/*{{{*/
+  int eye; 
 {
   register int i, color, dx;
 
   XSetForeground(display, gc, foreground);
   if (eye == LEFT)
     XDrawRectangle(display, pixmap, gc,
-		   (LEFT_IMAGE_X-1), (IMAGE_Y-1),
-		   (IMAGE_WIDTH+1), (PIXEL_HEIGHT+1));
+        (LEFT_IMAGE_X-1), (IMAGE_Y-1),
+        (IMAGE_WIDTH+1), (PIXEL_HEIGHT+1));
   else if (eye == RIGHT)
     XDrawRectangle(display, pixmap, gc, 
-		   (RIGHT_IMAGE_X-1), (IMAGE_Y-1),
-		   (IMAGE_WIDTH+1), (PIXEL_HEIGHT+1));
+        (RIGHT_IMAGE_X-1), (IMAGE_Y-1),
+        (IMAGE_WIDTH+1), (PIXEL_HEIGHT+1));
 
   for (i = 0, dx = 0; i < NPIXELS; i++, dx += PIXEL_WIDTH) {
     color = eyes[eye].image[i];
     XSetForeground(display, gc, world_colors[color].display_color);
-    
+
     if (eye == LEFT)
       XFillRectangle(display, pixmap, gc, 
-		     (LEFT_IMAGE_X+dx), IMAGE_Y, PIXEL_WIDTH, PIXEL_HEIGHT);
+          (LEFT_IMAGE_X+dx), IMAGE_Y, PIXEL_WIDTH, PIXEL_HEIGHT);
     else if (eye == RIGHT)
       XFillRectangle(display, pixmap, gc,
-		     (RIGHT_IMAGE_X+dx), IMAGE_Y, PIXEL_WIDTH, PIXEL_HEIGHT);
+          (RIGHT_IMAGE_X+dx), IMAGE_Y, PIXEL_WIDTH, PIXEL_HEIGHT);
   }
 }
+/*}}}*/
 
-void draw_roger(mobile_base, arms, eyes)
-Base mobile_base;
-Arm arms[NARMS][NARM_FRAMES];
-Eye eyes[NEYES];
+void draw_roger(mobile_base, arms, eyes)/*{{{*/
+  Base mobile_base;
+  Arm arms[NARMS][NARM_FRAMES];
+  Eye eyes[NEYES];
 {
   register int i, j;
   double r_b[4], r_w[4], fhat[2];
@@ -1944,7 +2065,7 @@ Eye eyes[NEYES];
   /* draw mobile base */
   XSetForeground(display, gc, foreground);
   draw_circle(W2DX(zoom,mobile_base.wTb[0][3]),
-	      W2DY(zoom,mobile_base.wTb[1][3]), W2DR(zoom,R_BASE), NOFILL);
+      W2DY(zoom,mobile_base.wTb[1][3]), W2DR(zoom,R_BASE), NOFILL);
 
   // draw contact forces on object from body
   mag = sqrt(SQR(mobile_base.extForce[X]) + SQR(mobile_base.extForce[Y]));
@@ -1954,10 +2075,10 @@ Eye eyes[NEYES];
     fhat[Y] = mobile_base.extForce[Y] / mag;
 
     XDrawLine(display, pixmap, gc, 
-	      W2DX(zoom, mobile_base.x - R_BASE*fhat[X]),
-	      W2DY(zoom, mobile_base.y - R_BASE*fhat[Y]),
-	      W2DX(zoom, mobile_base.x - (R_BASE+0.08)*fhat[X]),
-	      W2DY(zoom, mobile_base.y - (R_BASE+0.08)*fhat[Y]));
+        W2DX(zoom, mobile_base.x - R_BASE*fhat[X]),
+        W2DY(zoom, mobile_base.y - R_BASE*fhat[Y]),
+        W2DX(zoom, mobile_base.x - (R_BASE+0.08)*fhat[X]),
+        W2DY(zoom, mobile_base.y - (R_BASE+0.08)*fhat[Y]));
 
     //    XDrawLine(display, pixmap, gc,
     //      W2DX(zoom, mobile_base.x + R_BASE*cos(mobile_base.contact_theta)),
@@ -1973,12 +2094,12 @@ Eye eyes[NEYES];
   r_b[2] = 0.0; r_b[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, r_b, r_w);
   draw_circle(W2DX(zoom,r_w[0]), W2DY(zoom,r_w[1]), W2DR(zoom,WHEEL_THICKNESS),
-	      FILL);
+      FILL);
   r_b[0] = -R_BASE/2.0; r_b[1] = R_BASE+WHEEL_THICKNESS;
   r_b[2] = 0.0; r_b[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, r_b, r_w);
   draw_circle(W2DX(zoom,r_w[0]), W2DY(zoom,r_w[1]), W2DR(zoom,WHEEL_THICKNESS),
-	      FILL);
+      FILL);
 
   r_b[0] = R_BASE/2.0; r_b[1] = R_BASE; r_b[2] = 0.0; r_b[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, r_b, r_w);
@@ -2008,12 +2129,12 @@ Eye eyes[NEYES];
   r_b[2] = 0.0; r_b[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, r_b, r_w);
   draw_circle(W2DX(zoom, r_w[0]), W2DY(zoom, r_w[1]),
-	      W2DR(zoom,WHEEL_THICKNESS),FILL);
+      W2DR(zoom,WHEEL_THICKNESS),FILL);
   r_b[0] = -R_BASE/2.0; r_b[1] = -R_BASE-WHEEL_THICKNESS; r_b[2] = 0.0;
   r_b[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, r_b, r_w);
   draw_circle(W2DX(zoom, r_w[0]), W2DY(zoom, r_w[1]),
-	      W2DR(zoom,WHEEL_THICKNESS),FILL);
+      W2DR(zoom,WHEEL_THICKNESS),FILL);
 
   r_b[0] = R_BASE/2.0; r_b[1] = -R_BASE; r_b[2] = 0.0; r_b[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, r_b, r_w);
@@ -2049,12 +2170,12 @@ Eye eyes[NEYES];
     XSetForeground(display, gc, world_colors[EYE_COLOR].display_color);
     if (i == LEFT)
       XFillRectangle(display, pixmap, gc,
-		     T12LD(eyes[i].theta), T22LD(0.0), 
-		     (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
+          T12LD(eyes[i].theta), T22LD(0.0), 
+          (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
     else if (i == RIGHT)
       XFillRectangle(display, pixmap, gc,
-		     T12RD(eyes[i].theta), T22RD(0.0), 
-		     (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
+          T12RD(eyes[i].theta), T22RD(0.0), 
+          (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
   }
   /******************************************************************/
   /* draw arms */
@@ -2065,31 +2186,31 @@ Eye eyes[NEYES];
     for (i=1; i<NARM_FRAMES; i++) {
       matrix_mult(4, 4, temp0, 4, arms[j][i].iTj, temp1);
       XDrawLine(display, pixmap, gc, 
-		W2DX(zoom,temp0[0][3]), W2DY(zoom,temp0[1][3]),
-		W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]));
+          W2DX(zoom,temp0[0][3]), W2DY(zoom,temp0[1][3]),
+          W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]));
       if (i==(NARM_FRAMES-1))
-	draw_circle(W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]),
-		    W2DR(zoom,R_TACTILE), FILL);
+        draw_circle(W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]),
+            W2DR(zoom,R_TACTILE), FILL);
       else {
-	draw_circle(W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]),
-		    W2DR(zoom,R_JOINT), NOFILL);
-	matrix_copy(4, 4, temp1, temp0);
+        draw_circle(W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]),
+            W2DR(zoom,R_JOINT), NOFILL);
+        matrix_copy(4, 4, temp1, temp0);
       }
     }
 
     // draw endpoint forces
     mag = sqrt(SQR(arms[j][NARM_FRAMES-1].extForce[X]) + 
-	       SQR(arms[j][NARM_FRAMES-1].extForce[Y]));
+        SQR(arms[j][NARM_FRAMES-1].extForce[Y]));
     if (mag>0.0) {
       // XSetForeground(display, gc, world_colors[GAZE_COLOR].display_color);
       XSetForeground(display, gc, foreground);
       fhat[X] = arms[j][NARM_FRAMES-1].extForce[X]/mag;
       fhat[Y] = arms[j][NARM_FRAMES-1].extForce[Y]/mag;
       XDrawLine(display, pixmap, gc,
-		W2DX(zoom,(temp1[0][3]+R_TACTILE*fhat[X])),
-		W2DY(zoom,(temp1[1][3]+R_TACTILE*fhat[Y])),
-		W2DX(zoom,(temp1[0][3]+(R_TACTILE+0.08)*fhat[X])),
-		W2DY(zoom,(temp1[1][3]+(R_TACTILE+0.08)*fhat[Y])));
+          W2DX(zoom,(temp1[0][3]+R_TACTILE*fhat[X])),
+          W2DY(zoom,(temp1[1][3]+R_TACTILE*fhat[Y])),
+          W2DX(zoom,(temp1[0][3]+(R_TACTILE+0.08)*fhat[X])),
+          W2DY(zoom,(temp1[1][3]+(R_TACTILE+0.08)*fhat[Y])));
 
       // XDrawLine(display, pixmap, gc,
       //  W2DX(zoom,temp1[0][3]), W2DY(zoom,temp1[1][3]),
@@ -2102,12 +2223,12 @@ Eye eyes[NEYES];
     /* draw coordinate in configuration space for left and right arms */
     if (j == LEFT)
       XFillRectangle(display, pixmap, gc,
-		     T12LD(arms[j][1].theta), T22LD(arms[j][2].theta),
-		     (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
+          T12LD(arms[j][1].theta), T22LD(arms[j][2].theta),
+          (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
     else if (j == RIGHT)
       XFillRectangle(display, pixmap, gc,
-		     T12RD(arms[j][1].theta), T22RD(arms[j][2].theta),
-		     (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
+          T12RD(arms[j][1].theta), T22RD(arms[j][2].theta),
+          (T2DR(TDELTA)+1), (T2DR(TDELTA)+1));
   }
   if (HISTORY) draw_history();
 
@@ -2115,12 +2236,12 @@ Eye eyes[NEYES];
   draw_image(LEFT);
   draw_image(RIGHT);
 }
-
+/*}}}*/
 #define FRAME_L         0.08
 
 // observations in world coordinates
-void draw_observation(obs)
-Observation obs;
+void draw_observation(obs)/*{{{*/
+  Observation obs;
 {
   double a, b, c, root[2];
   double dx, dy, mag, eigenvalue[2], eigenvector[2][2];
@@ -2183,18 +2304,18 @@ Observation obs;
 
   // all observations will be displayed in green goal_color
   XSetForeground(display, gc, world_colors[GOAL_COLOR].display_color);
-  
+
   // draw cross hair
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,(obs.pos[X]-(FRAME_L/2.0)*eigenvector[0][X])),
-	    W2DY(zoom,(obs.pos[Y]-(FRAME_L/2.0)*eigenvector[0][Y])),
-	    W2DX(zoom,(obs.pos[X]+(FRAME_L/2.0)*eigenvector[0][X])),
-	    W2DY(zoom,(obs.pos[Y]+(FRAME_L/2.0)*eigenvector[0][Y])));
+      W2DX(zoom,(obs.pos[X]-(FRAME_L/2.0)*eigenvector[0][X])),
+      W2DY(zoom,(obs.pos[Y]-(FRAME_L/2.0)*eigenvector[0][Y])),
+      W2DX(zoom,(obs.pos[X]+(FRAME_L/2.0)*eigenvector[0][X])),
+      W2DY(zoom,(obs.pos[Y]+(FRAME_L/2.0)*eigenvector[0][Y])));
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,(obs.pos[X]-(FRAME_L/2.0)*eigenvector[1][X])),
-	    W2DY(zoom,(obs.pos[Y]-(FRAME_L/2.0)*eigenvector[1][Y])),
-	    W2DX(zoom,(obs.pos[X]+(FRAME_L/2.0)*eigenvector[1][X])),
-	    W2DY(zoom,(obs.pos[Y] + (FRAME_L/2.0)*eigenvector[1][Y])));
+      W2DX(zoom,(obs.pos[X]-(FRAME_L/2.0)*eigenvector[1][X])),
+      W2DY(zoom,(obs.pos[Y]-(FRAME_L/2.0)*eigenvector[1][Y])),
+      W2DX(zoom,(obs.pos[X]+(FRAME_L/2.0)*eigenvector[1][X])),
+      W2DY(zoom,(obs.pos[Y] + (FRAME_L/2.0)*eigenvector[1][Y])));
   dx0 = eigenvalue[0] * eigenvector[0][X];
   dy0 = eigenvalue[0] * eigenvector[0][Y];
 
@@ -2208,19 +2329,19 @@ Observation obs;
     dy1 = (eigenvalue[0]*cos(theta))*eigenvector[0][Y] + 
       (eigenvalue[1]*sin(theta))*eigenvector[1][Y];
     XDrawLine(display, pixmap, gc,
-	      W2DX(zoom,(obs.pos[X] + dx0)), W2DY(zoom,(obs.pos[Y] + dy0)),
-	      W2DX(zoom,(obs.pos[X] + dx1)), W2DY(zoom,(obs.pos[Y] + dy1)));
+        W2DX(zoom,(obs.pos[X] + dx0)), W2DY(zoom,(obs.pos[Y] + dy0)),
+        W2DX(zoom,(obs.pos[X] + dx1)), W2DY(zoom,(obs.pos[Y] + dy1)));
     dx0 = dx1;
     dy0 = dy1;
   }
 }
-
+/*}}}*/
 #define STEP         0.01
 #define STREAM_SPACE 1
 
 /* the streamline visualization is not yet implemented in this version */
-void draw_streamlines(color)
-int color;
+void draw_streamlines(color)/*{{{*/
+  int color;
 {
   void sor();
   double from[2], to[2];
@@ -2231,7 +2352,7 @@ int color;
 
   /* make sure the harmonic function is fully converged */
   sor(&Roger);
-  
+
   // initialize auxilliary structure for controlling the
   // density of streamlines rendered
   for (row=0; row<NBINS; ++row) {
@@ -2247,49 +2368,50 @@ int color;
   for (row=1;row<(NBINS-1); ++row) {
     for (col=1;col<(NBINS-1); ++col) {
       if ((Roger.world_map.occupancy_map[row][col] == FREESPACE) &&
-	  ((Roger.world_map.occupancy_map[row-1][col-1] == OBSTACLE) ||
-	   (Roger.world_map.occupancy_map[row-1][col] == OBSTACLE)   ||
-	   (Roger.world_map.occupancy_map[row-1][col+1] == OBSTACLE) ||
-	   (Roger.world_map.occupancy_map[row][col-1] == OBSTACLE)   ||
-	   (Roger.world_map.occupancy_map[row][col+1] == OBSTACLE)   ||
-	   (Roger.world_map.occupancy_map[row+1][col-1] == OBSTACLE) ||
-	   (Roger.world_map.occupancy_map[row+1][col] == OBSTACLE)   ||
-	   (Roger.world_map.occupancy_map[row+1][col+1] == OBSTACLE) ) &&
-	  (!already_used[row][col]) ) {
-	  
-	/* follow a stream line */
-	oldx = MIN_X + (col+0.5)*XDELTA;
-	oldy = MAX_Y - (row+0.5)*YDELTA;
-	//	draw_current_streamline(row,col,oldx, oldy);
+          ((Roger.world_map.occupancy_map[row-1][col-1] == OBSTACLE) ||
+           (Roger.world_map.occupancy_map[row-1][col] == OBSTACLE)   ||
+           (Roger.world_map.occupancy_map[row-1][col+1] == OBSTACLE) ||
+           (Roger.world_map.occupancy_map[row][col-1] == OBSTACLE)   ||
+           (Roger.world_map.occupancy_map[row][col+1] == OBSTACLE)   ||
+           (Roger.world_map.occupancy_map[row+1][col-1] == OBSTACLE) ||
+           (Roger.world_map.occupancy_map[row+1][col] == OBSTACLE)   ||
+           (Roger.world_map.occupancy_map[row+1][col+1] == OBSTACLE) ) &&
+          (!already_used[row][col]) ) {
 
-	count = 0;
-	current_row = row;
-	current_col = col;
-	while ((Roger.world_map.occupancy_map[current_row][current_col]!=GOAL)
-	       && (mag=compute_gradient(oldx, oldy, &Roger, grad))
-	       && (count++ < 500)) {
-	  
-	  x = oldx - STEP*grad[X];
-	  y = oldy - STEP*grad[Y];
+        /* follow a stream line */
+        oldx = MIN_X + (col+0.5)*XDELTA;
+        oldy = MAX_Y - (row+0.5)*YDELTA;
+        //	draw_current_streamline(row,col,oldx, oldy);
 
-	  XDrawLine(display, pixmap, gc, W2DX(zoom,oldx), W2DY(zoom,oldy),
-		    W2DX(zoom,x), W2DY(zoom,y));
-	  /*  circle((int)x,(int)y,2,background);  */
-	  oldx=x; oldy=y;
-	  current_row = (int)(y - MAX_Y)/YDELTA;
-	  current_col = (int)(MIN_X - x)/XDELTA;
-	}
+        count = 0;
+        current_row = row;
+        current_col = col;
+        while ((Roger.world_map.occupancy_map[current_row][current_col]!=GOAL)
+            && (mag=compute_gradient(oldx, oldy, &Roger, grad))
+            && (count++ < 500)) {
 
-	//	mark_used((col+1),(row+1),already_used); 
-	mark_used(row, col, already_used); 
+          x = oldx - STEP*grad[X];
+          y = oldy - STEP*grad[Y];
+
+          XDrawLine(display, pixmap, gc, W2DX(zoom,oldx), W2DY(zoom,oldy),
+              W2DX(zoom,x), W2DY(zoom,y));
+          /*  circle((int)x,(int)y,2,background);  */
+          oldx=x; oldy=y;
+          current_row = (int)(y - MAX_Y)/YDELTA;
+          current_col = (int)(MIN_X - x)/XDELTA;
+        }
+
+        //	mark_used((col+1),(row+1),already_used); 
+        mark_used(row, col, already_used); 
       }
     }
   }
   //  draw_history();
   x_expose();
 }
-      
-void draw_current_streamline()
+/*}}}*/
+
+void draw_current_streamline()/*{{{*/
 {
   int count, current_row, current_col;
   double x,y,grad[2];
@@ -2304,24 +2426,25 @@ void draw_current_streamline()
   current_row = (int)(oldy - MAX_Y)/YDELTA;
   current_col = (int)(MIN_X - oldx)/XDELTA;
   while ((Roger.world_map.occupancy_map[current_row][current_col] != GOAL)
-	 && (mag=compute_gradient(oldx, oldy, &Roger, grad))
-	 && (count++ < 500)) {
-	  
+      && (mag=compute_gradient(oldx, oldy, &Roger, grad))
+      && (count++ < 500)) {
+
     x = oldx - STEP*grad[X];
     y = oldy - STEP*grad[Y];
 
     XDrawLine(display, pixmap, gc, W2DX(zoom,oldx), W2DY(zoom,oldy),
-		    W2DX(zoom,x), W2DY(zoom,y));
+        W2DX(zoom,x), W2DY(zoom,y));
     oldx=x; oldy=y;
     current_row = (int)(y - MAX_Y)/YDELTA;
     current_col = (int)(MIN_X - x)/XDELTA;
   }
   x_expose();
 }
+/*}}}*/
 
-void mark_used(r,c,aux)
-int r, c;
-int aux[NBINS][NBINS];
+void mark_used(r,c,aux)/*{{{*/
+  int r, c;
+  int aux[NBINS][NBINS];
 {
   int i,j;
   double dist;
@@ -2330,32 +2453,33 @@ int aux[NBINS][NBINS];
     for (j=-STREAM_SPACE; j<=STREAM_SPACE; ++j) {
       dist = sqrt(SQR((double)i) + SQR((double)j));
       if ((dist < (2.0*STREAM_SPACE + 1.0)) 
-	     && ((r+i) >= 0) && ((r+i) < NBINS) 
-	     && ((c+j) >= 0) && ((c+j) < NBINS))
-	aux[r+i][c+j] = TRUE;
+          && ((r+i) >= 0) && ((r+i) < NBINS) 
+          && ((c+j) >= 0) && ((c+j) < NBINS))
+        aux[r+i][c+j] = TRUE;
     }
   }
 }
-
+/*}}}*/
 #define VMAG 0.5
 
 // observations in world coordinates
-void draw_estimate0(scale, est)
-double scale;
-Estimate est;
+void draw_estimate0(scale, est)/*{{{*/
+  double scale;
+  Estimate est;
 {
   draw_circle(W2DX(ZOOM_SCALE,est.state[X]), W2DY(ZOOM_SCALE,est.state[Y]),
-	      W2DR(ZOOM_SCALE,R_BASE), NOFILL);
+      W2DR(ZOOM_SCALE,R_BASE), NOFILL);
 
   x_draw_line(BLUE,est.state[X],est.state[Y],
-	      (est.state[X]+VMAG*est.state[XDOT]),
-	      (est.state[Y]+VMAG*est.state[YDOT]));
+      (est.state[X]+VMAG*est.state[XDOT]),
+      (est.state[Y]+VMAG*est.state[YDOT]));
 }
-
+/*}}}*/
 // estimates in world coordinates
-void draw_estimate(scale, est)
-double scale;
-Estimate est;
+
+void draw_estimate(scale, est)/*{{{*/
+  double scale;
+  Estimate est;
 {
   double a, b, c, root[2];
   double dx, dy, mag, eigenvalue[2], eigenvector[2][2];
@@ -2427,15 +2551,15 @@ Estimate est;
 
   // draw cross hair
   XDrawLine(display, pixmap, gc,
-	    W2DX(zoom,(est.state[X]-(FRAME_L/2.0)*eigenvector[0][X])),
-	    W2DY(zoom,(est.state[Y]-(FRAME_L/2.0)*eigenvector[0][Y])),
-	    W2DX(zoom,(est.state[X]+(FRAME_L/2.0)*eigenvector[0][X])),
-	    W2DY(zoom,(est.state[Y]+(FRAME_L/2.0)*eigenvector[0][Y])));
+      W2DX(zoom,(est.state[X]-(FRAME_L/2.0)*eigenvector[0][X])),
+      W2DY(zoom,(est.state[Y]-(FRAME_L/2.0)*eigenvector[0][Y])),
+      W2DX(zoom,(est.state[X]+(FRAME_L/2.0)*eigenvector[0][X])),
+      W2DY(zoom,(est.state[Y]+(FRAME_L/2.0)*eigenvector[0][Y])));
   XDrawLine(display, pixmap, gc, 
-	    W2DX(zoom,(est.state[X]-(FRAME_L/2.0)*eigenvector[1][X])),
-	    W2DY(zoom,(est.state[Y]-(FRAME_L/2.0)*eigenvector[1][Y])),
-	    W2DX(zoom,(est.state[X]+(FRAME_L/2.0)*eigenvector[1][X])),
-	    W2DY(zoom,(est.state[Y]+(FRAME_L/2.0)*eigenvector[1][Y])));
+      W2DX(zoom,(est.state[X]-(FRAME_L/2.0)*eigenvector[1][X])),
+      W2DY(zoom,(est.state[Y]-(FRAME_L/2.0)*eigenvector[1][Y])),
+      W2DX(zoom,(est.state[X]+(FRAME_L/2.0)*eigenvector[1][X])),
+      W2DY(zoom,(est.state[Y]+(FRAME_L/2.0)*eigenvector[1][Y])));
   dx0 = eigenvalue[0] * eigenvector[0][X];
   dy0 = eigenvalue[0] * eigenvector[0][Y];
 
@@ -2449,28 +2573,29 @@ Estimate est;
     dy1 = (eigenvalue[0]*cos(theta))*eigenvector[0][Y] +
       (eigenvalue[1]*sin(theta))*eigenvector[1][Y];
     XDrawLine(display, pixmap, gc, 
-	      W2DX(zoom,(est.state[X]+dx0)), W2DY(zoom,(est.state[Y]+dy0)),
-	      W2DX(zoom,(est.state[X]+dx1)),
-	      W2DY(zoom,(est.state[Y] + dy1)));
+        W2DX(zoom,(est.state[X]+dx0)), W2DY(zoom,(est.state[Y]+dy0)),
+        W2DX(zoom,(est.state[X]+dx1)),
+        W2DY(zoom,(est.state[Y] + dy1)));
     dx0 = dx1;
     dy0 = dy1;
   }
 }
+/*}}}*/
 
-void draw_ellipse(est)
-Estimate est;
+void draw_ellipse(est)/*{{{*/
+  Estimate est;
 {
   double m[2][2], a, b, c, root[2];
   double dx, dy, mag, eigenvalue[2], eigenvector[2][2];
   double theta, dx0, dy0, dx1, dy1;
 
   //  printf("observation time = %lf  time = %lf\n", est.t, simtime);
-  
+
   //if ((est.t == simtime)) {
 
   // DRAW THE CURRENT ESTIMATED STATE VARIABLES AND THEIR VELOCITIES
   draw_circle(W2DX(zoom,est.state[X]), W2DY(zoom,est.state[Y]),
-	      W2DR(zoom,R_JOINT), FILL);
+      W2DR(zoom,R_JOINT), FILL);
 
   m[0][0] = est.cov[0][0];
   m[0][1] = est.cov[0][1];
@@ -2510,9 +2635,9 @@ Estimate est;
     dy1 = (eigenvalue[0]*cos(theta))*eigenvector[0][Y] +
       (eigenvalue[1]*sin(theta))*eigenvector[1][Y];
     XDrawLine(display, pixmap, gc, 
-	      W2DX(zoom,(est.state[X]+dx0)), W2DY(zoom,(est.state[Y]+dy0)),
-	      W2DX(zoom,(est.state[X]+dx1)),
-	      W2DY(zoom,(est.state[Y]+dy1)));
+        W2DX(zoom,(est.state[X]+dx0)), W2DY(zoom,(est.state[Y]+dy0)),
+        W2DX(zoom,(est.state[X]+dx1)),
+        W2DY(zoom,(est.state[Y]+dy1)));
     dx0 = dx1;
     dy0 = dy1;
   }
@@ -2545,8 +2670,8 @@ typedef struct _polygon {
 } Polygon;
 
 void insertion_sort(vob, sort, num)
-VisibleObject *vob;
-int *sort, num;
+  VisibleObject *vob;
+  int *sort, num;
 {
   int i,j, temp;
 
@@ -2556,18 +2681,19 @@ int *sort, num;
     j = i - 1;
     temp = sort[i];
     while ((j>=0) && 
-	   (sqrt(SQR(vob[sort[j]].dx) + SQR(vob[sort[j]].dy)) <= 
-	    sqrt(SQR(vob[temp].dx) + SQR(vob[temp].dy)))) {
+        (sqrt(SQR(vob[sort[j]].dx) + SQR(vob[sort[j]].dy)) <= 
+         sqrt(SQR(vob[temp].dx) + SQR(vob[temp].dy)))) {
       sort[j+1] = sort[j];
       j--;
     }
     sort[j+1] = temp;
   }
 }
+/*}}}*/
 
-void pinhole_camera(vob, i)
-VisibleObject vob;
-int i;
+void pinhole_camera(vob, i)/*{{{*/
+  VisibleObject vob;
+  int i;
 {
   int j, low_bin_index, high_bin_index, paint_image;
   double phi, alpha;
@@ -2602,8 +2728,9 @@ int i;
   //     printf("FEATURE OUTSIDE FIELD OF VIEW \n");
   //  }
 }
+/*}}}*/
 
-void make_images()
+void make_images()/*{{{*/
 {
   int i, j, eye, o_index; // intensity[3];
   double x, y;
@@ -2652,15 +2779,15 @@ void make_images()
     for (i=0;i<NBINS;++i) {
       y = MAX_Y - (i+0.5)*YDELTA;
       for (j=0;j<NBINS; ++j) {
-	if (Roger.world_map.occupancy_map[i][j] == OBSTACLE) {
-	  pw[0] = MIN_X + (j+0.5)*XDELTA; pw[1] = y;
-	  pw[2] = 0.0; pw[3] = 1.0;
-	  matrix_mult(4, 4, bTw, 1, pw, pb);
-	  vobject[o_index].dx = pb[X] - eyes[eye].position[X];
-	  vobject[o_index].dy = pb[Y] - eyes[eye].position[Y];
-	  vobject[o_index].radius = R_OBSTACLE;
-	  vobject[o_index++].color = Roger.world_map.color_map[i][j];
-	}
+        if (Roger.world_map.occupancy_map[i][j] == OBSTACLE) {
+          pw[0] = MIN_X + (j+0.5)*XDELTA; pw[1] = y;
+          pw[2] = 0.0; pw[3] = 1.0;
+          matrix_mult(4, 4, bTw, 1, pw, pb);
+          vobject[o_index].dx = pb[X] - eyes[eye].position[X];
+          vobject[o_index].dy = pb[Y] - eyes[eye].position[Y];
+          vobject[o_index].radius = R_OBSTACLE;
+          vobject[o_index++].color = Roger.world_map.color_map[i][j];
+        }
       }
     }
     insertion_sort(vobject, sort, o_index);
@@ -2668,10 +2795,11 @@ void make_images()
       pinhole_camera(vobject[sort[i]], eye);
   }
 }
+/*}}}*/
 
-void x_timer_proc(w, client_data, call_data)
-Widget w;
-XtPointer client_data, call_data;
+void x_timer_proc(w, client_data, call_data)/*{{{*/
+  Widget w;
+  XtPointer client_data, call_data;
 {
   int i, j, reset;
   static int render = RENDER_RATE, servo = SERVO_RATE;
@@ -2697,10 +2825,10 @@ XtPointer client_data, call_data;
     if ((HISTORY) && (history_ptr < MAX_HISTORY)) {
       history[history_ptr].arm_pos[LEFT][0] = arms[LEFT][1].theta;
       history[history_ptr].arm_pos[LEFT][1] = arms[LEFT][2].theta;
-      
+
       history[history_ptr].arm_pos[RIGHT][0] = arms[RIGHT][1].theta;
       history[history_ptr].arm_pos[RIGHT][1] = arms[RIGHT][2].theta;
-      
+
       history[history_ptr].base_pos[0] = mobile_base.x;
       history[history_ptr].base_pos[1] = mobile_base.y;
       history[history_ptr].base_pos[2] = mobile_base.theta;
@@ -2716,14 +2844,15 @@ XtPointer client_data, call_data;
   timer=XtAppAddTimeOut(app_con,TIMER_UPDATE,x_timer_proc,(XtPointer) NULL);
   // goal_detection(); // for shooting goals in soccer app
 }
+/*}}}*/
 
-void goal_detection()
+void goal_detection()/*{{{*/
 {
   char *temp, buf[20];
 
   if (toy.position[Y] < (MIN_Y + R_GOAL)) {
     printf("Scored at: %f\n",simtime);
-    
+
     temp = gcvt(simtime,5,buf);
     printf("temp=%s\n",temp);
 
@@ -2736,12 +2865,13 @@ void goal_detection()
     timer = 0;
   }
 }
+/*}}}*/
 
-void Teleoperation_Cartesian_input_arms(roger, x, y, button)
-Robot* roger;
-double x;
-double y;
-int button;
+void Teleoperation_Cartesian_input_arms(roger, x, y, button)/*{{{*/
+  Robot* roger;
+  double x;
+  double y;
+  int button;
 {
   int limb = LEFT;
 
@@ -2758,12 +2888,13 @@ int button;
   else return;
   inv_arm_kinematics(roger, limb, x,y); //PROJECT #2 - ArmKinematics/project2.c
 }
+/*}}}*/
 
-void Teleoperation_Cartesian_input_base(roger, x, y, button)
-Robot* roger;
-double x;
-double y;
-int button;
+void Teleoperation_Cartesian_input_base(roger, x, y, button)/*{{{*/
+  Robot* roger;
+  double x;
+  double y;
+  int button;
 {
   double dx, dy, theta;
 
@@ -2774,12 +2905,12 @@ int button;
   theta = roger->base_setpoint[THETA] = atan2(dy,dx);
   printf("world frame Base goal: x=%6.4lf y=%6.4lf theta=%6.4lf\n", x,y,theta);
 }
-
+/*}}}*/
 //check if input is in configuration space area and return angles
-int isConfigurationInput(x, y, q1, q2, side) 
-double x, y;
-double *q1, *q2;
-int *side;
+int isConfigurationInput(x, y, q1, q2, side) /*{{{*/
+  double x, y;
+  double *q1, *q2;
+  int *side;
 {
   double range = 0.0;
 
@@ -2792,7 +2923,7 @@ int *side;
   //check if click is in configuration space area
   //X-Direction
   if (x < D2WX(100.0, T12LD(T1_MIN)) || (x > D2WX(100.0, T12LD(T1_MAX)) && 
-      x < D2WX(100.0, T12RD(T1_MIN))) || x > D2WX(100.0, T12RD(T1_MAX))) {
+        x < D2WX(100.0, T12RD(T1_MIN))) || x > D2WX(100.0, T12RD(T1_MAX))) {
     //printf("x-location out of bounds!!! %6.4lf \n", x);
     return FALSE;
   }
@@ -2821,11 +2952,11 @@ int *side;
   }
   return TRUE;
 }
-
+/*}}}*/
 //check if input is in cartesian space area
-int isCartesianInput(x_input, y_input, x, y) 
-double x_input, y_input;
-double *x, *y;
+int isCartesianInput(x_input, y_input, x, y) /*{{{*/
+  double x_input, y_input;
+  double *x, *y;
 {
   if (x_input<MIN_X || x_input>MAX_X || y_input<MIN_Y || y_input>MAX_Y) {
     //printf("Location out of bounds!!!\n");
@@ -2836,7 +2967,7 @@ double *x, *y;
 
   return TRUE;
 }
-
+/*}}}*/
 /***********************************************************************/
 /** Input modes --- update the setpoint data structure:            *****/ 
 /**    JOINT_ANGLE_INPUT mode: mouse(q1,q2) -> arm (q1, q2) ref    *****/
@@ -2846,8 +2977,8 @@ double *x, *y;
 /**           MAP_EDITOR mode: left button(x,y) -> obstacle        *****/
 /**                            right button(x,y) -> goal           *****/
 /***********************************************************************/
-void update_setpoints(roger)
-Robot * roger;
+void update_setpoints(roger)/*{{{*/
+  Robot * roger;
 {
   int xbin, ybin;
   //void rrt_planning();
@@ -2872,116 +3003,116 @@ Robot * roger;
   // Mode dependent button interfaces
   if (roger->button_event) {
     switch(roger->input_mode) {
-    case JOINT_ANGLE_INPUT:
-      //check if inputs are valid
-      if (isConfigurationInput(roger->button_reference[X],
-			       roger->button_reference[Y], &q1, &q2,
-			       &body_side) == FALSE)
-	break;
+      case JOINT_ANGLE_INPUT:
+        //check if inputs are valid
+        if (isConfigurationInput(roger->button_reference[X],
+              roger->button_reference[Y], &q1, &q2,
+              &body_side) == FALSE)
+          break;
 
-      if (roger->control_mode == PROJECT1) { // GUI inputs to Motor Units
-	//left mouse button -> arms
-	if (roger->button_event == LEFT_BUTTON) {
-	  printf("q1=%6.4lf q2=%6.4lf\n", q1, q2);
-	  
-	  roger->arm_setpoint[body_side][0] = q1;
-	  roger->arm_setpoint[body_side][1] = q2;
-	}
-	//right mouse button -> eyes
-	else if (roger->button_event == RIGHT_BUTTON) {
-	  printf("q1=%6.4lf \n", q1);
-	  roger->eyes_setpoint[body_side] = q1;
-	}
-      }
-      break;
+        if (roger->control_mode == PROJECT1) { // GUI inputs to Motor Units
+          //left mouse button -> arms
+          if (roger->button_event == LEFT_BUTTON) {
+            printf("q1=%6.4lf q2=%6.4lf\n", q1, q2);
 
-    case BASE_GOAL_INPUT:
-      //check if inputs are valid
-      if (isCartesianInput(roger->button_reference[X], 
-			   roger->button_reference[Y], &x, &y) == FALSE)
-	break;
+            roger->arm_setpoint[body_side][0] = q1;
+            roger->arm_setpoint[body_side][1] = q2;
+          }
+          //right mouse button -> eyes
+          else if (roger->button_event == RIGHT_BUTTON) {
+            printf("q1=%6.4lf \n", q1);
+            roger->eyes_setpoint[body_side] = q1;
+          }
+        }
+        break;
 
-      if (roger->control_mode == PROJECT1)
-	Teleoperation_Cartesian_input_base(roger, x, y, roger->button_event);
-      break;
+      case BASE_GOAL_INPUT:
+        //check if inputs are valid
+        if (isCartesianInput(roger->button_reference[X], 
+              roger->button_reference[Y], &x, &y) == FALSE)
+          break;
 
-    case ARM_GOAL_INPUT:
-      // BUTTON INTERFACE - ARM TELEOPERATOR - CARTESIAN CONTROL
-      //check if inputs are valid
-      if (isCartesianInput(roger->button_reference[X],
-			   roger->button_reference[Y],&x,&y) == FALSE)
-	break;
-      //      printf("inside arm_goal_input case");
-      if ((roger->control_mode == PROJECT1) ||
-	  (roger->control_mode == PROJECT2))
-	Teleoperation_Cartesian_input_arms(roger, x, y, roger->button_event);
-      break;
+        if (roger->control_mode == PROJECT1)
+          Teleoperation_Cartesian_input_base(roger, x, y, roger->button_event);
+        break;
 
-    case TOY_INPUT:
-      //check if inputs are valid
-      if (isCartesianInput(roger->button_reference[X],
-			   roger->button_reference[Y], &x, &y) == FALSE)
-	break;
-      else {
-	if (roger->button_event == LEFT_BUTTON) {
-	  place_object(x,y,CIRCLE);
-	}
-	else if (roger->button_event == RIGHT_BUTTON) {
-	  place_object(x,y,TRIANGLE);
-	}
-	break;
-      }
-    case MAP_INPUT:
-      if (isCartesianInput(roger->button_reference[X],
-			   roger->button_reference[Y], &x, &y) == FALSE)
-	break;
+      case ARM_GOAL_INPUT:
+        // BUTTON INTERFACE - ARM TELEOPERATOR - CARTESIAN CONTROL
+        //check if inputs are valid
+        if (isCartesianInput(roger->button_reference[X],
+              roger->button_reference[Y],&x,&y) == FALSE)
+          break;
+        //      printf("inside arm_goal_input case");
+        if ((roger->control_mode == PROJECT1) ||
+            (roger->control_mode == PROJECT2))
+          Teleoperation_Cartesian_input_arms(roger, x, y, roger->button_event);
+        break;
 
-      //      int xbin, ybin; already defined above
-      printf("Map editor input - x: %4.3f, y: %4.3f - button: %d\n",
-	     x, y, roger->button_event);
+      case TOY_INPUT:
+        //check if inputs are valid
+        if (isCartesianInput(roger->button_reference[X],
+              roger->button_reference[Y], &x, &y) == FALSE)
+          break;
+        else {
+          if (roger->button_event == LEFT_BUTTON) {
+            place_object(x,y,CIRCLE);
+          }
+          else if (roger->button_event == RIGHT_BUTTON) {
+            place_object(x,y,TRIANGLE);
+          }
+          break;
+        }
+      case MAP_INPUT:
+        if (isCartesianInput(roger->button_reference[X],
+              roger->button_reference[Y], &x, &y) == FALSE)
+          break;
 
-      xbin = (x - MIN_X) / XDELTA;
-      ybin = NBINS - (y - MIN_Y) / YDELTA;
-      if ((xbin<0) || (xbin>(NBINS-1)) || (ybin<0) || (ybin>(NBINS-1))) {
-	printf("Out of the boundary!!!\n");
-      }
-      else {
-	if (roger->button_event==LEFT_BUTTON) {// obstacles in Cartesian space
-	  if (roger->world_map.occupancy_map[ybin][xbin] == OBSTACLE) {
-	    printf("deleting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
-	    fflush(stdout);
-	    roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
-	    //	    delete_bin_bumper(xbin,ybin);
-	  }
-	  else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
-	    printf("inserting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
-	    fflush(stdout);
-	    roger->world_map.occupancy_map[ybin][xbin] = OBSTACLE;
-	    roger->world_map.potential_map[ybin][xbin] = 1.0;
-	    roger->world_map.color_map[ybin][xbin] = LIGHTBLUE;
-	  }
-	}
-	else if (roger->button_event == MIDDLE_BUTTON) { }
-	else if (roger->button_event == RIGHT_BUTTON) {
-	  if (roger->world_map.occupancy_map[ybin][xbin] == GOAL) {
-	    printf("deleting an goal xbin=%d  ybin=%d\n", xbin, ybin);
-	    fflush(stdout);
-	    roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
-	  }
-	  else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
-	    printf("inserting an goal xbin=%d  ybin=%d\n", xbin, ybin);
-	    fflush(stdout);
-	    roger->world_map.occupancy_map[ybin][xbin] = GOAL;
-	    roger->world_map.potential_map[ybin][xbin] = 0.0;
-	  }
-	}
-	//update harmonic map
-	//sor(roger);
-      }
-      
-      break;
-    default:
-      break;
+        //      int xbin, ybin; already defined above
+        printf("Map editor input - x: %4.3f, y: %4.3f - button: %d\n",
+            x, y, roger->button_event);
+
+        xbin = (x - MIN_X) / XDELTA;
+        ybin = NBINS - (y - MIN_Y) / YDELTA;
+        if ((xbin<0) || (xbin>(NBINS-1)) || (ybin<0) || (ybin>(NBINS-1))) {
+          printf("Out of the boundary!!!\n");
+        }
+        else {
+          if (roger->button_event==LEFT_BUTTON) {// obstacles in Cartesian space
+            if (roger->world_map.occupancy_map[ybin][xbin] == OBSTACLE) {
+              printf("deleting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
+              fflush(stdout);
+              roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
+              //	    delete_bin_bumper(xbin,ybin);
+            }
+            else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
+              printf("inserting an obstacle xbin=%d  ybin=%d\n", xbin, ybin);
+              fflush(stdout);
+              roger->world_map.occupancy_map[ybin][xbin] = OBSTACLE;
+              roger->world_map.potential_map[ybin][xbin] = 1.0;
+              roger->world_map.color_map[ybin][xbin] = LIGHTBLUE;
+            }
+          }
+          else if (roger->button_event == MIDDLE_BUTTON) { }
+          else if (roger->button_event == RIGHT_BUTTON) {
+            if (roger->world_map.occupancy_map[ybin][xbin] == GOAL) {
+              printf("deleting an goal xbin=%d  ybin=%d\n", xbin, ybin);
+              fflush(stdout);
+              roger->world_map.occupancy_map[ybin][xbin] = FREESPACE;
+            }
+            else if (roger->world_map.occupancy_map[ybin][xbin] == FREESPACE) {
+              printf("inserting an goal xbin=%d  ybin=%d\n", xbin, ybin);
+              fflush(stdout);
+              roger->world_map.occupancy_map[ybin][xbin] = GOAL;
+              roger->world_map.potential_map[ybin][xbin] = 0.0;
+            }
+          }
+          //update harmonic map
+          //sor(roger);
+        }
+
+        break;
+      default:
+        break;
     }
     roger->button_event = FALSE;
   }
@@ -2991,42 +3122,43 @@ Robot * roger;
   //*******************************************************************
 
   switch(roger->control_mode) {
-     case PROJECT2:
-       project2_control(roger, simtime);
-       break;
-     case PROJECT3:
-       project3_control(roger, simtime);
-       break;
-     case PROJECT4:
-       project4_control(roger,simtime);
-       break;
-     case PROJECT5:
-       project5_control(roger, simtime);
-       break;
-     case PROJECT6:
-       project6_control(roger, simtime);
-       break;
-     case PROJECT7:
-       project7_control(roger, simtime);
-       break;
-     case PROJECT8:
-       project8_control(roger, simtime);
-       break;
-     case PROJECT9:
-       project9_control(roger, simtime);
-       break;
-     default:
-       break;
+    case PROJECT2:
+      project2_control(roger, simtime);
+      break;
+    case PROJECT3:
+      project3_control(roger, simtime);
+      break;
+    case PROJECT4:
+      project4_control(roger,simtime);
+      break;
+    case PROJECT5:
+      project5_control(roger, simtime);
+      break;
+    case PROJECT6:
+      project6_control(roger, simtime);
+      break;
+    case PROJECT7:
+      project7_control(roger, simtime);
+      break;
+    case PROJECT8:
+      project8_control(roger, simtime);
+      break;
+    case PROJECT9:
+      project9_control(roger, simtime);
+      break;
+    default:
+      break;
   }
 }
+/*}}}*/
 
-int main(argc, argv)
-int argc;char **argv;
+int main(argc, argv)/*{{{*/
+  int argc;char **argv;
 {
   int i;
   static String fallback_resources[] = {"*title:	Roger-the-Crab",
-					"*Roger-the-Crab*x:	100",
-					"*Roger-the-Crab*y:	100",NULL,};
+    "*Roger-the-Crab*x:	100",
+    "*Roger-the-Crab*y:	100",NULL,};
   Widget toplevel, form, widget;
   void x_clear();
 
@@ -3034,17 +3166,17 @@ int argc;char **argv;
   //  intersect_line_circle();
 
   toplevel = XtAppInitialize(&app_con, "Roger-the-Crab", NULL, ZERO,
-			     &argc, argv, fallback_resources, NULL, ZERO);
+      &argc, argv, fallback_resources, NULL, ZERO);
   form = XkwMakeForm(toplevel);
   widget = NULL;
   start_w = widget = 
     XkwMakeCommand(form,NULL,widget,x_start_proc,"Start",BOXW,BOXH);
   input_mode_w = widget = 
     XkwMakeCommand(form,NULL,widget,x_input_mode_proc,
-		   "Input: Joint angles", BOXW, BOXH);
+        "Input: Joint angles", BOXW, BOXH);
   control_mode_w = widget = 
     XkwMakeCommand(form,NULL,widget,x_control_mode_proc,
-		   "1-Motor Units",BOXW,BOXH);
+        "1-Motor Units",BOXW,BOXH);
   room_w = widget = 
     XkwMakeCommand(form,NULL,widget,x_room_proc,"Room: 0", BOXW, BOXH);
   params_w = widget = 
@@ -3075,12 +3207,13 @@ int argc;char **argv;
   reset=TRUE;
   initialize_room(&Roger);
   initialize_simulator(reset); // initializes world boundaries,
-                               // mobile_base, eyes[2], arms[2], the object and
-                               // the Roger interface structure
+  // mobile_base, eyes[2], arms[2], the object and
+  // the Roger interface structure
   simulate_roger(&mobile_base, arms, eyes);
   simulate_object(&toy);
   make_images();
   draw_all();
 
   XtAppMainLoop(app_con);
-}
+}/*}}}*/
+

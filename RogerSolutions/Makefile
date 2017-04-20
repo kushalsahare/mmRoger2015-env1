@@ -35,20 +35,20 @@ CCFLAGS = -c -g -I. -I$(XINCDIR) -I$(EDLAB_XINCDIR) -I$(ROGERINCDIR)
 PROG = x
 
 PROJECTOFILES = project1-MotorUnits/project1.o \
-                project2-ArmKinematics/project2.o \
-		project3-Vision/project3.o \
-		project4-SearchTrack/project4.o \
-                project4-SearchTrack/sampling.o \
-		project5-StereoKinematics/project5.o \
-		project6-Kalman/project6.o \
-		project6-Kalman/kalman.o \
-                project7-ChasePunch/project7.o \
-		project8-PathPlanning/project8.o \
-		project8-PathPlanning/velocity_control.o \
-		project9-Grasp/project9.o \
-                project10-Model/project10.o \
-		project11-Belief/project11.o
-
+								project2-ArmKinematics/project2.o \
+								project3-Vision/project3.o \
+								project4-SearchTrack/project4.o \
+								project4-SearchTrack/sampling.o \
+								project5-StereoKinematics/project5.o \
+								project6-Kalman/project6.o \
+								project6-Kalman/kalman.o \
+								project7-ChasePunch/project7.o \
+								project8-PathPlanning/project8.o \
+								project8-PathPlanning/velocity_control.o \
+								project9-Grasp/project9.o \
+								project10-Model/project10.o \
+								project11-Belief/project11.o \
+								project12-Belief/project12.o
 HFILES = roger.h simulate.h control.h modes.h matrix_math.h
 
 all:  subdirs  $(PROG)
@@ -62,9 +62,10 @@ subdirs:
 	cd project6-Kalman; make; cd ..; \
 	cd project7-ChasePunch; make; cd ..;
 	cd project8-PathPlanning; make; cd ..; \
-	cd project9-Grasp; make; cd ..;
-	cd project10-Model; make; cd ..;
-	cd project11-Belief; make; cd ..;
+	cd project9-Grasp; make; cd ..; \
+	cd project10-Model; make; cd ..; \
+	cd project11-Belief; make; cd ..; \
+	cd project12-Belief; make; cd ..;
 
 $(PROG): $(PROJECTOFILES) 
 	$(CC) -o $@ lib/simulator.a $(LIBS) $^

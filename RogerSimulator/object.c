@@ -6,14 +6,15 @@
 /*************************************************************************/
 #include <math.h>
 #include <stdio.h>
-#include "include/roger.h"
+#include "include/Roger.h"
 #include "include/simulate.h"
 #include "include/control.h"
 
 // "object" data structure definition can be found in include/simulate.h
 PolyBall toy_home =
-  { CIRCLE,                  // object id (CIRCLE||TRIANGLE)
+  { CIRCLE,                  // object id (CIRCLE||TRIANGLE||RECT)
     1,                       // number of vertices
+    NULL,
     R_BALL,                  // circle radius
     0.0,                     // spoke_length
     M_BALL,                  // mass
@@ -21,8 +22,13 @@ PolyBall toy_home =
     { 0.0, (2*MAX_Y), 0.0 }, // position in world coordinates 
                              // (initially outside/north of drawable canvas
     { 0.0, 0.0, 0.0 },       // velocity in world coordinates
-    { 0.0, 0.0, 0.0 } };     // default external forces
+    { 0.0, 0.0, 0.0 },       // default external forces
 
+    {{1.0, 0.0,  0.0,     0.0   },
+     {0.0, 1.0,  0.0, (2*MAX_Y) },
+     {0.0, 0.0,  1.0,     0.0   },
+     {0.0, 0.0,  0.0,     1.0   }} // iTj
+  };     
 
 void simulate_object(obj)
 PolyBall * obj;
@@ -84,4 +90,11 @@ PolyBall * obj;
   //	 acc[Y], obj->velocity[Y], obj->position[Y]);
   //  printf("\t\t THETA: acc=%lf vel=%lf pos=%lf\n", 
   //	 acc[THETA], obj->velocity[THETA], obj->position[THETA]);
+  obj->iTj[0][0] =  cos(obj->position[THETA]);
+  obj->iTj[0][1] = -sin(obj->position[THETA]);
+  obj->iTj[1][0] = -obj->iTj[0][1];
+  obj->iTj[1][1] =  obj->iTj[0][0];
+  obj->iTj[0][3] =  obj->position[X];
+  obj->iTj[1][3] =  obj->position[Y];
+
 }

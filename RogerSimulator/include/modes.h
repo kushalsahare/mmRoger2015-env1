@@ -35,6 +35,7 @@ enum control_modes {
   PROJECT9,
   PROJECT10,
   PROJECT11,
+  PROJECT12,
   N_CONTROL_MODES //number of modes
 };
 
@@ -42,6 +43,7 @@ enum room_num {
   R0 = 0,
   R1,
   R2,
+  R3,
   N_ROOMS // number of rooms
 };
 

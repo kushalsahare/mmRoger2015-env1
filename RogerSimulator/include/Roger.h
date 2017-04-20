@@ -6,6 +6,8 @@
 /* Date:        11-1-2009                                                 */
 /**************************************************************************/
 
+#ifndef ROGER_H_
+#define ROGER_H_
 /**************************************************************************/
 // environmental constants
 /**************************************************************************/
@@ -63,6 +65,7 @@ enum iobj {
 
 #define CIRCLE         0      /* object "shape" identifier */
 #define TRIANGLE       1 
+#define RECT           2
 
 #define M_BALL       0.5   /* [kg] */
 #define I_BALL       0.02  /* [kg m^2] */
@@ -72,6 +75,16 @@ enum iobj {
 #define I_TRIANGLE   0.02  /* [kg m^2] */
 #define R_VERTEX     0.15  /* [m] - the radius of the VERTEX ball */
 #define R_SPOKE      0.15  /* [m] - "spoke" length */
+
+#define H_RECT       0.25  /* [m]  - height of the rect */
+#define W_RECT       0.25  /* [m]  - width of the rect */
+#define M_RECT       0.50  /* [kg] - mass of the rect */
+#define I_RECT       0.02  /* [kg m^2] */
+
+#define X            0
+#define Y            1
+#define TRUE         1
+#define FALSE        0
 
 /**************************************************************************/
 // graphical constants - just for rendering
@@ -122,3 +135,5 @@ enum iobj {
 #define EYE_W0 			122.2
 #define ELBOW_W0		 50.3
 #define SHOULDER_W0              30.1
+
+#endif //ROGER_H_
