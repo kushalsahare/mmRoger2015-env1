@@ -63,6 +63,8 @@ enum iobj {
   NBODY
 };
 
+#define USE_SPHERE     0
+
 #define CIRCLE         0      /* object "shape" identifier */
 #define TRIANGLE       1 
 #define RECT           2
