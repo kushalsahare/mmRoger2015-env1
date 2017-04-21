@@ -19,7 +19,7 @@
 /*}}}*/
 
 // simulator data structures that comprise Roger
-Base mobile_base;
+Base mobile_base;/*{{{*/
 extern Base mobile_base_home;
 Eye eyes[NEYES];
 extern Eye eyes_home[NEYES];
@@ -47,7 +47,7 @@ int init_control_flag = TRUE;
 int reset;
 
 // global simulator clock
-double simtime = 0.0;
+double simtime = 0.0;/*}}}*/
 //function declarations
 
 void x_canvas_proc(), x_start_proc(), x_params_proc(), x_input_mode_proc();/*{{{*/
@@ -422,11 +422,11 @@ void initialize_inertial_objects()/*{{{*/
   pb[0] = x; pb[1] = y; pb[2] = 0.0; pb[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, pb, pw);
   int
-  // left hand velocity relative to base written in base coordinates
-  //          (figure 2 in RogerDynamics document defines frames)
-  // ^w(v)_10 = wRb[ ^b(v)_7 +  J_arm theta_dot_arm ]
-  //    = ^w(v)_b + wRb[ -ARM_OFFSET omega_0 xhat_b + J_arm theta_dot_arm ]
-  SIMarm_Jacobian(arms[LEFT][1].theta, arms[LEFT][2].theta, J);
+    // left hand velocity relative to base written in base coordinates
+    //          (figure 2 in RogerDynamics document defines frames)
+    // ^w(v)_10 = wRb[ ^b(v)_7 +  J_arm theta_dot_arm ]
+    //    = ^w(v)_b + wRb[ -ARM_OFFSET omega_0 xhat_b + J_arm theta_dot_arm ]
+    SIMarm_Jacobian(arms[LEFT][1].theta, arms[LEFT][2].theta, J);
   vb[X] = J[0][0]*arms[LEFT][1].theta_dot + 
     J[0][1]*arms[LEFT][2].theta_dot - ARM_OFFSET*mobile_base.theta_dot;
   vb[Y] = J[1][0]*arms[LEFT][1].theta_dot + J[1][1]*arms[LEFT][2].theta_dot;
@@ -1155,7 +1155,7 @@ void copy_object(i, obj)/*{{{*/
   obj->Rsphere = objects[i].Rsphere;
   obj->radius = objects[i].radius;
   obj->vert  =
-  obj->mass = objects[i].mass;
+    obj->mass = objects[i].mass;
   obj->moi = objects[i].moi;
   obj->position[X] = objects[i].position[X];
   obj->position[Y] = objects[i].position[Y];
@@ -1826,6 +1826,10 @@ void draw_object2(obj)/*{{{*/
   double vertex_o[4], vertex_w[4];
   double oT1[4][4], oT2[4][4], wT1[4][4], wT2[4][4];
   XPoint polygon[6];
+  XPoint triangle[3];
+  XPoint rect[4];
+
+  int i =0;
 
   XSetForeground(display, gc, world_colors[OBJECT_COLOR].display_color);
 
@@ -1835,73 +1839,105 @@ void draw_object2(obj)/*{{{*/
           W2DR(zoom,R_BALL), FILL);
       break;
     case TRIANGLE:
-      x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
-      c = cos(theta); s = sin(theta);
+      if(USE_SPHERES==1)
+      {
+        x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
+        c = cos(theta); s = sin(theta);
 
-      // world-to-object (object frame is frame 0)
-      wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
-      wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
-      wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
-      wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
+        // world-to-object (object frame is frame 0)
+        wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
+        wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
+        wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
+        wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
 
-      // vertices are the same with respect to their local frame
-      v[0][0] = obj.Rsphere*cos(M_PI/12.0);
-      v[0][1] = -v[0][0];
-      v[1][0] = obj.radius + obj.Rsphere*sin(M_PI/12.0);
-      v[1][1] = v[1][0];
+        // vertices are the same with respect to their local frame
+        v[0][0] = obj.Rsphere*cos(M_PI/12.0);
+        v[0][1] = -v[0][0];
+        v[1][0] = obj.radius + obj.Rsphere*sin(M_PI/12.0);
+        v[1][1] = v[1][0];
 
-      v[2][0] = 0.0;                    v[2][1] = 0.0;
-      v[3][0] = 1.0;                    v[3][1] = 1.0;
+        v[2][0] = 0.0;                    v[2][1] = 0.0;
+        v[3][0] = 1.0;                    v[3][1] = 1.0;
 
-      matrix_mult(4, 4, wTo, 2, v, vw);
-      polygon[0].x = (short) (W2DX(zoom, vw[0][0]));
-      polygon[0].y = (short) (W2DY(zoom, vw[1][0]));
-      polygon[1].x = (short) (W2DX(zoom, vw[0][1]));
-      polygon[1].y = (short) (W2DY(zoom, vw[1][1]));
+        matrix_mult(4, 4, wTo, 2, v, vw);
+        polygon[0].x = (short) (W2DX(zoom, vw[0][0]));
+        polygon[0].y = (short) (W2DY(zoom, vw[1][0]));
+        polygon[1].x = (short) (W2DX(zoom, vw[0][1]));
+        polygon[1].y = (short) (W2DY(zoom, vw[1][1]));
 
-      vertex_o[0] = 0.0; vertex_o[1] = obj.radius;
-      vertex_o[2] = 0.0; vertex_o[3] = 1.0; 
-      matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
-      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
-          W2DR(zoom,obj.Rsphere),FILL);
+        vertex_o[0] = 0.0; vertex_o[1] = obj.radius;
+        vertex_o[2] = 0.0; vertex_o[3] = 1.0; 
+        matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
+        draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+            W2DR(zoom,obj.Rsphere),FILL);
 
-      c = cos(2.0*M_PI/3.0); s = sin(2.0*M_PI/3.0);
-      oT1[0][0] =  c;  oT1[0][1] = -s;  oT1[0][2]= 0.0; oT1[0][3]= 0.0;
-      oT1[1][0] =  s;  oT1[1][1] =  c;  oT1[1][2]= 0.0; oT1[1][3]= 0.0;
-      oT1[2][0] = 0.0; oT1[2][1] = 0.0; oT1[2][2]= 1.0; oT1[2][3]= 0.0;
-      oT1[3][0] = 0.0; oT1[3][1] = 0.0; oT1[3][2]= 0.0; oT1[3][3]= 1.0;
+        c = cos(2.0*M_PI/3.0); s = sin(2.0*M_PI/3.0);
+        oT1[0][0] =  c;  oT1[0][1] = -s;  oT1[0][2]= 0.0; oT1[0][3]= 0.0;
+        oT1[1][0] =  s;  oT1[1][1] =  c;  oT1[1][2]= 0.0; oT1[1][3]= 0.0;
+        oT1[2][0] = 0.0; oT1[2][1] = 0.0; oT1[2][2]= 1.0; oT1[2][3]= 0.0;
+        oT1[3][0] = 0.0; oT1[3][1] = 0.0; oT1[3][2]= 0.0; oT1[3][3]= 1.0;
 
-      matrix_mult(4, 4, wTo, 4, oT1, wT1);
-      matrix_mult(4, 4, wT1, 2, v, vw);
-      polygon[2].x = (short) (W2DX(zoom, vw[0][0]));
-      polygon[2].y = (short) (W2DY(zoom, vw[1][0]));
-      polygon[3].x = (short) (W2DX(zoom, vw[0][1]));
-      polygon[3].y = (short) (W2DY(zoom, vw[1][1]));
+        matrix_mult(4, 4, wTo, 4, oT1, wT1);
+        matrix_mult(4, 4, wT1, 2, v, vw);
+        polygon[2].x = (short) (W2DX(zoom, vw[0][0]));
+        polygon[2].y = (short) (W2DY(zoom, vw[1][0]));
+        polygon[3].x = (short) (W2DX(zoom, vw[0][1]));
+        polygon[3].y = (short) (W2DY(zoom, vw[1][1]));
 
-      matrix_mult(4, 4, wT1, 1, vertex_o, vertex_w);
-      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
-          W2DR(zoom,obj.Rsphere),FILL);
+        matrix_mult(4, 4, wT1, 1, vertex_o, vertex_w);
+        draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+            W2DR(zoom,obj.Rsphere),FILL);
 
-      c = cos(4.0*M_PI/3.0); s = sin(4.0*M_PI/3.0);
-      oT2[0][0] =  c;  oT2[0][1] = -s;  oT2[0][2]= 0.0; oT2[0][3]= 0.0;
-      oT2[1][0] =  s;  oT2[1][1] =  c;  oT2[1][2]= 0.0; oT2[1][3]= 0.0;
-      oT2[2][0] = 0.0; oT2[2][1] = 0.0; oT2[2][2]= 1.0; oT2[2][3]= 0.0;
-      oT2[3][0] = 0.0; oT2[3][1] = 0.0; oT2[3][2]= 0.0; oT2[3][3]= 1.0;
+        c = cos(4.0*M_PI/3.0); s = sin(4.0*M_PI/3.0);
+        oT2[0][0] =  c;  oT2[0][1] = -s;  oT2[0][2]= 0.0; oT2[0][3]= 0.0;
+        oT2[1][0] =  s;  oT2[1][1] =  c;  oT2[1][2]= 0.0; oT2[1][3]= 0.0;
+        oT2[2][0] = 0.0; oT2[2][1] = 0.0; oT2[2][2]= 1.0; oT2[2][3]= 0.0;
+        oT2[3][0] = 0.0; oT2[3][1] = 0.0; oT2[3][2]= 0.0; oT2[3][3]= 1.0;
 
-      matrix_mult(4, 4, wTo, 4, oT2, wT2);
-      matrix_mult(4, 4, wT2, 2, v, vw);
-      polygon[4].x = (short) (W2DX(zoom, vw[0][0]));
-      polygon[4].y = (short) (W2DY(zoom, vw[1][0]));
-      polygon[5].x = (short) (W2DX(zoom, vw[0][1]));
-      polygon[5].y = (short) (W2DY(zoom, vw[1][1]));
+        matrix_mult(4, 4, wTo, 4, oT2, wT2);
+        matrix_mult(4, 4, wT2, 2, v, vw);
+        polygon[4].x = (short) (W2DX(zoom, vw[0][0]));
+        polygon[4].y = (short) (W2DY(zoom, vw[1][0]));
+        polygon[5].x = (short) (W2DX(zoom, vw[0][1]));
+        polygon[5].y = (short) (W2DY(zoom, vw[1][1]));
 
-      matrix_mult(4, 4, wT2, 1, vertex_o, vertex_w);
-      draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
-          W2DR(zoom,obj.Rsphere),FILL);
+        matrix_mult(4, 4, wT2, 1, vertex_o, vertex_w);
+        draw_circle(W2DX(zoom, vertex_w[0]), W2DY(zoom, vertex_w[1]),
+            W2DR(zoom,obj.Rsphere),FILL);
 
-      XFillPolygon(display, pixmap, gc, polygon, 6, Convex, CoordModeOrigin);
+        XFillPolygon(display, pixmap, gc, polygon, 6, Convex, CoordModeOrigin);
+      }
+      else
+      {
+        x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
+        c = cos(theta); s = sin(theta);
+
+        // world-to-object (object frame is frame 0)
+        wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
+        wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
+        wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
+        wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
+
+
+        vertex_o[2] = 0.0; 
+        vertex_o[3] = 1.0; 
+
+        for(i = 0 ; i < obj.N ; i++){
+        vertex_o[0] = obj.vertices[i][X]; 
+        vertex_o[1] = obj.vertices[i][Y];
+        
+        matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
+        
+        polygon[i].x = (short) (W2DX(zoom, vertex_w[X]));
+        polygon[i].y = (short) (W2DY(zoom, vertex_w[Y]));
+        }
+        
+        XFillPolygon(display, pixmap, gc, polygon, obj.N, Convex, CoordModeOrigin);
+      }
       break;
     case RECT:
+      if(USE_SPHERES ==1)
+      {
       x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
       c = cos(theta); s = sin(theta);
 
@@ -1967,7 +2003,34 @@ void draw_object2(obj)/*{{{*/
           W2DR(zoom,obj.Rsphere),FILL);
 
       XFillPolygon(display, pixmap, gc, polygon, 6, Convex, CoordModeOrigin);
+     }
+     else{
 
+       x = obj.position[X]; y = obj.position[Y]; theta = obj.position[THETA];
+       c = cos(theta); s = sin(theta);
+
+        // world-to-object (object frame is frame 0)
+        wTo[0][0] =   c; wTo[0][1] =  -s; wTo[0][2] = 0.0; wTo[0][3] = x;
+        wTo[1][0] =   s; wTo[1][1] =   c; wTo[1][2] = 0.0; wTo[1][3] = y;
+        wTo[2][0] = 0.0; wTo[2][1] = 0.0; wTo[2][2] = 1.0; wTo[2][3] = 0.0;
+        wTo[3][0] = 0.0; wTo[3][1] = 0.0; wTo[3][2] = 0.0; wTo[3][3] = 1.0;
+
+
+        vertex_o[2] = 0.0; 
+        vertex_o[3] = 1.0; 
+
+        for(i = 0 ; i < obj.N ; i++){
+        vertex_o[0] = obj.vertices[i][X]; 
+        vertex_o[1] = obj.vertices[i][Y];
+        
+        matrix_mult(4, 4, wTo, 1, vertex_o, vertex_w);
+        
+        polygon[i].x = (short) (W2DX(zoom, vertex_w[X]));
+        polygon[i].y = (short) (W2DY(zoom, vertex_w[Y]));
+        }
+        
+        XFillPolygon(display, pixmap, gc, polygon, obj.N, Convex, CoordModeOrigin);
+     }
   }
 }
 /*}}}*/
