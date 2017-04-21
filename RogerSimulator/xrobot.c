@@ -399,7 +399,7 @@ void initialize_inertial_objects()/*{{{*/
   //  } PolyBall;
 
   /****************************** 0: BASE ************************************/
-  objects[BASE].N = 1;
+  objects[BASE].N = 1; 
   objects[BASE].Rsphere = R_BASE;
   objects[BASE].radius = 0.0;
   objects[BASE].mass = M_BASE;
@@ -421,7 +421,7 @@ void initialize_inertial_objects()/*{{{*/
   SIMfwd_kinematics(LEFT, arms[LEFT][1].theta, arms[LEFT][2].theta, &x, &y);
   pb[0] = x; pb[1] = y; pb[2] = 0.0; pb[3] = 1.0;
   matrix_mult(4, 4, mobile_base.wTb, 1, pb, pw);
-
+  int
   // left hand velocity relative to base written in base coordinates
   //          (figure 2 in RogerDynamics document defines frames)
   // ^w(v)_10 = wRb[ ^b(v)_7 +  J_arm theta_dot_arm ]
@@ -495,7 +495,7 @@ void initialize_inertial_objects()/*{{{*/
   objects[ARM2].net_extForce[X] = objects[ARM2].net_extForce[Y] =
     objects[ARM2].net_extForce[THETA] = 0.0;
 
-  /****************** 3: TOY OBJECT - CIRCLE || TRIANGLE *********************/
+  /****************** 3: TOY OBJECT - CIRCLE || TRIANGLE || RECT*********************/
   objects[TOY].id = toy.id = toy_home.id;
   objects[TOY].N = toy.N = toy_home.N;
   objects[TOY].Rsphere = toy.Rsphere = toy_home.Rsphere;
@@ -576,6 +576,21 @@ void place_object(x,y,id)/*{{{*/
     toy.velocity[X] = toy.velocity[Y] = toy.velocity[THETA] = 0.0;
     toy.net_extForce[X] = toy.net_extForce[Y] = toy.net_extForce[THETA] = 0.0;
   }
+  else if (id==RECT) {
+    toy.id = id;
+    toy.N = 4;
+    toy.Rsphere = 0.0; //R_VERTEX;;
+    toy.radius = 0.0; 
+    toy.mass = M_RECT;
+    toy.moi = I_RECT;
+    toy.position[X] = x;
+    toy.position[Y] = y;
+    toy.position[THETA] = 0.0;
+    toy.velocity[X] = toy.velocity[Y] = toy.velocity[THETA] = 0.0;
+    toy.net_extForce[X] = toy.net_extForce[Y] = toy.net_extForce[THETA] = 0.0;
+  }
+
+
 }    
 /*}}}*/
 
@@ -1255,6 +1270,7 @@ void update_objects() /*{{{*/
   objects[TOY].N = toy.N;
   objects[TOY].Rsphere = toy.Rsphere;
   objects[TOY].radius = toy.radius;
+  objects[TOY].v      = toy.v;
   objects[TOY].mass = toy.mass;
   objects[TOY].moi = toy.moi;
 
