@@ -145,6 +145,8 @@ typedef struct _eye {
 } Eye;
 
 // a composite of N elastic spheres at the vertices of a regular polygon
+#ifndef OBJECT_H_
+#define OBJECT_H_
 typedef struct _polyball {
   int id;                 // CIRCLE || TRIANGLE || RECT but any N can be used
   int N;                  // N vertices
@@ -159,7 +161,7 @@ typedef struct _polyball {
   double net_extForce[3]; // from collisions with other objects
   double iTj[4][4];       // frame from local to world;
 } PolyBall;
-
+#endif //OBJECT_H_
 
 /*************************************************************************/
 //typedef struct _world {

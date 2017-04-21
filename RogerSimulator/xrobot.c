@@ -1139,6 +1139,7 @@ void copy_object(i, obj)/*{{{*/
   obj->N = objects[i].N;
   obj->Rsphere = objects[i].Rsphere;
   obj->radius = objects[i].radius;
+  obj->vert  =
   obj->mass = objects[i].mass;
   obj->moi = objects[i].moi;
   obj->position[X] = objects[i].position[X];
