@@ -36,8 +36,9 @@ ROGERLIB = lib/simulator.a
 
 OFILES1 = xrobot.o \
 	 platform.o \
-         object.o \
+            object.o \
 	 matrix_math.o \
+	 whole_body.o \
 	 geometry.o \
 #	 wall.o
 

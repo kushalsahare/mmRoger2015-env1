@@ -7,7 +7,7 @@
 /*************************************************************************/
 #include <math.h>
 #include <stdlib.h>
-#include "include/roger.h"
+#include "include/Roger.h"
 #include "include/simulate.h"
 #include "include/control.h"
 

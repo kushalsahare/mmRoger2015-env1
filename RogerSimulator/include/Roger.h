@@ -106,7 +106,7 @@ enum iobj {
 //#define B_COLLIDE      2.5
 //#define OBJ_GRAVITY    0.0  /* neutrally buoyant */
 
-#define K_COLLIDE    4500.0
+#define K_COLLIDE    45500.0
 #define B_COLLIDE      5.5
 #define OBJ_GRAVITY    0.0  /* neutrally buoyant */
 
