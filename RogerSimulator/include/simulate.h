@@ -112,9 +112,6 @@
 
 /***********************************************************************/
 // STRUCTURES FOR THE STATE OF ALL THE DEVICES THAT COMPRISE ROGER
-
-#ifndef BASE_H_
-#define BASE_H_
 typedef struct _base {
   double wTb[4][4];
   double x;
@@ -128,8 +125,6 @@ typedef struct _base {
   double extForce[2];          // net (fx,fy) force on the base
   double wheel_theta_dot[NWHEELS];
 } Base;
-#endif // BASE_H_
-
 
 typedef struct _arm {
   double iTj[4][4];
